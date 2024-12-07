@@ -1,0 +1,66 @@
+# Virtual Environment
+venv/
+env/
+.Python
+
+# Environment Variables
+.env
+
+# Compiled Python Files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / Packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Logs
+*.log
+*.out
+*.err
+
+# Django Static and Media Files
+static_cdn/
+media/*
+
+# Local Django Settings
+local_settings.py
+
+# Database Files
+db.sqlite3
+
+# Testing / Coverage Reports
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*,cover
+.hypothesis/
+
+# IDE Directories
+.vscode/
+.spyderproject/
+.ropeproject/
+
+# IPython
+.ipynb_checkpoints
+
+# PyInstaller
+*.spec
+
+# Celery
+celerybeat-schedule
+
+# Django Migrations
+*.pyc
+migrations/
