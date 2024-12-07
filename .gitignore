@@ -35,7 +35,7 @@ media/*
 local_settings.py
 
 # Database Files
-db.sqlite3
+# db.sqlite3
 
 # Testing / Coverage Reports
 .tox/
