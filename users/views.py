@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from .models import CustomUser
+from .models import User
 from rest_framework.exceptions import ValidationError
 from rest_framework import status
 from .serializers import (
@@ -51,9 +51,15 @@ class UserProfileList(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
-        user = CustomUser.objects.filter(id=request.user.id)
+        user = User.objects.filter(id=request.user.id)
         serializer = UserProfileSerializer(user, many=True)
-        return Response(serializer.data)
+        response_data = {
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "User profile fetched successfully.",
+            "data": serializer.data,
+        }
+        return Response(response_data)
 
     def post(self, request, format=None):
         serializer = UserProfileSerializer(data=request.data)
@@ -76,8 +82,8 @@ class ChangePassword(generics.GenericAPIView):
         new_password = serializer.validated_data["new_password"]
 
         try:
-            obj = CustomUser.objects.get(pk=pk)
-        except CustomUser.DoesNotExist:
+            obj = User.objects.get(pk=pk)
+        except User.DoesNotExist:
             return Response({"error": "User not found"}, status=404)
 
         if not obj.check_password(old_password):
