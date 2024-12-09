@@ -3,17 +3,17 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from .models import User, Profile
+from .models import User
 from rest_framework.exceptions import ValidationError
 from rest_framework import status
 from .serializers import (
     SignupSerializer,
     UserProfileSerializer,
     ChangePasswordSerializer,
-    ProfileSerializer,
 )
 from rest_framework import generics
-from django.http import Http404
+from rest_framework_simplejwt.views import TokenObtainPairView
+
 
 # Create your views here.
 
@@ -48,6 +48,43 @@ class SignupAPIView(APIView):
         return Response(data, status=response)
 
 
+class SigninView(TokenObtainPairView):
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        try:
+            nullChecker = False
+            serializer.is_valid(raise_exception=True)
+            token_data = serializer.validated_data
+            user = serializer.user
+            if user.first_name == None:
+                nullChecker = False
+            else:
+                nullChecker = True
+            print(user.first_name)
+
+            return Response(
+                {
+                    "status": status.HTTP_200_OK,
+                    "success": True,
+                    "message": "User signed in successfully.",
+                    "is_profile": nullChecker,
+                    "data": token_data,
+                },
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            return Response(
+                {
+                    "status": 400,
+                    "success": False,
+                    "message": "Sign-in failed. Invalid credentials.",
+                    "error": str(e),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
 class UserProfileList(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -57,7 +94,7 @@ class UserProfileList(APIView):
         response_data = {
             "status": status.HTTP_200_OK,
             "success": True,
-            "message": "User profile fetched successfully.",
+            "message": "user profile get successful",
             "data": serializer.data,
         }
         return Response(response_data)
@@ -66,70 +103,14 @@ class UserProfileList(APIView):
         serializer = UserProfileSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-
-
-
-# profile 
-class ProfileList(APIView):
-    authentication_classes = [JWTAuthentication]
-    def get(self, request, format=None):
-        profile = Profile.objects.filter(user=request.user)
-        serializer = ProfileSerializer(profile, many=True)
-        response_data = {
-            "status": status.HTTP_200_OK,
-            "success": True,
-            "message": "User profiles fetched successfully.",
-            "data": serializer.data,
-        }
-        return Response(response_data)
-
-    def post(self, request, format=None):
-        serializer = ProfileSerializer(data=request.data, context={"request": request})
-        if serializer.is_valid():
-            serializer.save(user=request.user)
             response_data = {
                 "status": status.HTTP_201_CREATED,
                 "success": True,
-                "message": "User profile created successfully.",
-                "data": serializer.data
+                "message": "user profile created successful",
+                "data": serializer.data,
             }
             return Response(response_data, status=status.HTTP_201_CREATED)
-            
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class ProfileDetail(APIView):
-    authentication_classes = [JWTAuthentication]
-    def get_object(self, pk):
-        try:
-            return Profile.objects.get(pk=pk)
-        except Profile.DoesNotExist:
-            raise Http404
-
-    def get(self, request, pk, format=None):
-        profile = self.get_object(pk)
-        serializer = ProfileSerializer(profile)
-        return Response(serializer.data)
-
-    def put(self, request, pk, format=None):
-        profile = self.get_object(pk)
-        serializer = ProfileSerializer(profile, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk, format=None):
-        snippet = self.get_object(pk)
-        snippet.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-
 
 
 # reset password by old password to new password
@@ -157,6 +138,5 @@ class ChangePassword(generics.GenericAPIView):
         return Response({"success": "Password changed successfully"}, status=200)
 
 
-
 def login(request):
-    return render(request, 'users/login.html')
+    return render(request, "users/login.html")
