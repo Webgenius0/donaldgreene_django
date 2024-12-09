@@ -1,4 +1,4 @@
-from .models import User
+from .models import User, Profile
 from rest_framework import fields, serializers
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.password_validation import validate_password
@@ -25,6 +25,16 @@ class UserProfileSerializer(serializers.ModelSerializer):
         model = User
         fields = ["id", "email"]
         # fields = "__all__"
+
+
+# profile update
+
+class ProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = '__all__'
+        read_only_fields = ['user']
+
 
 
 # reset password new to old password
