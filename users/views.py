@@ -13,7 +13,7 @@ from .serializers import (
 )
 from rest_framework import generics
 from rest_framework_simplejwt.views import TokenObtainPairView
-
+from django.http import Http404
 
 # Create your views here.
 
@@ -68,6 +68,7 @@ class SigninView(TokenObtainPairView):
                     "status": status.HTTP_200_OK,
                     "success": True,
                     "message": "User signed in successfully.",
+                    "user_id": user.id,
                     "is_profile": nullChecker,
                     "data": token_data,
                 },
@@ -111,6 +112,34 @@ class UserProfileList(APIView):
             }
             return Response(response_data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class UserProfileDetail(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, pk):
+        try:
+            return User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk, format=None):
+        user = self.get_object(pk)
+        serializer = UserProfileSerializer(user)
+        return Response(serializer.data)
+
+    def put(self, request, pk, format=None):
+        user = self.get_object(pk)
+        serializer = UserProfileSerializer(user, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk, format=None):
+        snippet = self.get_object(pk)
+        snippet.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 
