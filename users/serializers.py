@@ -7,7 +7,7 @@ from django.contrib.auth.password_validation import validate_password
 class SignupSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "email",  "password"]
+        fields = ["id", "email", "password"]
         extra_kwargs = {"password": {"write_only": True}}
 
     def create(self, validated_data):
@@ -23,7 +23,18 @@ class SignupSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "email", "first_name", "last_name", "state", "city", "bio", "age", "gender", "is_active"]
+        fields = [
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "state",
+            "city",
+            "bio",
+            "age",
+            "gender",
+            "is_active",
+        ]
         # fields = "__all__"
 
 

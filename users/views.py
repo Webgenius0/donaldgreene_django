@@ -113,6 +113,7 @@ class UserProfileList(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+
 # reset password by old password to new password
 class ChangePassword(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
