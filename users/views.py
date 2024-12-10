@@ -69,6 +69,7 @@ class SigninView(TokenObtainPairView):
                     "success": True,
                     "message": "User signed in successfully.",
                     "user_id": user.id,
+                    "user_email": user.email,
                     "is_profile": nullChecker,
                     "data": token_data,
                 },
