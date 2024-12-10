@@ -127,14 +127,26 @@ class UserProfileDetail(APIView):
     def get(self, request, pk, format=None):
         user = self.get_object(pk)
         serializer = UserProfileSerializer(user)
-        return Response(serializer.data)
+        response_data = {
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "user profile get successful",
+            "data": serializer.data,
+        }
+        return Response(response_data)
 
     def put(self, request, pk, format=None):
         user = self.get_object(pk)
         serializer = UserProfileSerializer(user, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            response_data = {
+                "status": status.HTTP_200_OK,
+                "success": True,
+                "message": "user profile updated successful",
+                "data": serializer.data,
+            }
+            return Response(response_data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk, format=None):
