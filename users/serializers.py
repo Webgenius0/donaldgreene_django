@@ -33,6 +33,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "bio",
             "age",
             "gender",
+            "occupation",
+            "marital_status",
+            "language",
             "is_active",
         ]
         # fields = "__all__"
