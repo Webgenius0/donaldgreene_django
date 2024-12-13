@@ -1,18 +1,37 @@
 from django.db import models
 from users.models import User
-import uuid
-# Create your models here.
 
-class SocialPost(models.Model):
-    id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
-    user = models.ForeignKey(User, related_name="user", on_delete=models.CASCADE)
-    title = models.TextField(null=True, blank=True)
-    react = models.IntegerField(null=True, blank=True)
-    comment = models.TextField(null=True, blank=True)
-    share = models.BooleanField(null=True, blank=True)
-    like = models.BooleanField(null=True, blank=True)
+class Post(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    title = models.CharField(max_length=255)
+    content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
 
+    def __str__(self):
+        return self.title
 
+class Comment(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, related_name="comments", on_delete=models.CASCADE)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Comment by {self.user.username} on {self.post.title}"
+
+class Like(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, related_name="likes", on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Like by {self.user.username} on {self.post.title}"
+
+class Share(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, related_name="shares", on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Share by {self.user.username} on {self.post.title}"
