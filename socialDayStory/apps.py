@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class DaystoryConfig(AppConfig):
+class SocialdaystoryConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'dayStory'
+    name = 'socialDayStory'
