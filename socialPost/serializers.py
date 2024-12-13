@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Post, Comment, Like, Share
+from .models import Post, Comment, Like, Share, DayStory
 from users.models import User
 
 

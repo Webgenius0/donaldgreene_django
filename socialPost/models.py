@@ -35,3 +35,4 @@ class Share(models.Model):
 
     def __str__(self):
         return f"Share by {self.user.username} on {self.post.title}"
+    
