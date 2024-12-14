@@ -14,13 +14,26 @@ class PostList(APIView):
     def get(self, request, format=None):
         posts = Post.objects.all()
         serializer = PostSerializer(posts, many=True)
-        return Response(serializer.data)
+        response_data = {
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "Post list get successful",
+            "data": serializer.data,
+        }
+        return Response(response_data)
 
     def post(self, request, format=None):
         serializer = PostSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(user=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            serializer.save()
+            response_data = {
+                "status": status.HTTP_201_CREATED,
+                "success": True,
+                "message": "Post created successful",
+                "data": serializer.data,
+            }
+            return Response(response_data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class PostDetail(APIView):
@@ -36,14 +49,26 @@ class PostDetail(APIView):
     def get(self, request, pk, format=None):
         post = self.get_object(pk)
         serializer = PostSerializer(post)
-        return Response(serializer.data)
+        response_data = {
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "Post detail get successful",
+            "data": serializer.data,
+        }
+        return Response(response_data)
 
     def put(self, request, pk, format=None):
         post = self.get_object(pk)
         serializer = PostSerializer(post, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            response_data = {
+                "status": status.HTTP_200_OK,
+                "success": True,
+                "message": "Post updated successful",
+                "data": serializer.data,
+            }
+            return Response(response_data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk, format=None):
@@ -96,7 +121,13 @@ class CommentList(APIView):
         post = Post.objects.get(pk=pk)
         comments = post.comments.all()
         serializer = CommentSerializer(comments, many=True)
-        return Response(serializer.data)
+        response_data = {
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "Comment list get successful",
+            "data": serializer.data,
+        }
+        return Response(response_data)
 
 
 # List of Likes for a specific Post
@@ -106,7 +137,13 @@ class LikeList(APIView):
         post = Post.objects.get(pk=pk)
         likes = post.likes.all()
         serializer = LikeSerializer(likes, many=True)
-        return Response(serializer.data)
+        response_data = {
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "Like list get successful",
+            "data": serializer.data,
+        }
+        return Response(response_data)
 
 
 # List of Shares for a specific Post
@@ -116,4 +153,10 @@ class ShareList(APIView):
         post = Post.objects.get(pk=pk)
         shares = post.shares.all()
         serializer = ShareSerializer(shares, many=True)
-        return Response(serializer.data)
+        response_data = {
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "Share list get successful",
+            "data": serializer.data,
+        }
+        return Response(response_data)

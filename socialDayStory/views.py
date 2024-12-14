@@ -18,7 +18,7 @@ class DayStoryList(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
-        dayStory = DayStory.objects.filter(user=request.user)
+        dayStory = DayStory.objects.all()
         serializer = DayStorySerializer(dayStory, many=True)
         response_data = {
             "status": status.HTTP_200_OK,
@@ -81,3 +81,24 @@ class DayStoryDetail(APIView):
         snippet = self.get_object(pk)
         snippet.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+#  post like
+
+
+class DayStoryLikeList(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        dayStoryLike = DayStoryLike.objects.filter(user=request.user)
+        serializer = DayStoryLike(dayStoryLike, many=True)
+        return Response(serializer.data)
+
+    def post(self, request,pk, format=None):
+        day_story = DayStory.objects.get(pk=pk)
+        serializer = DayStoryLikeSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(day_story=day_story, user=request.user)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
