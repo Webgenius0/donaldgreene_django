@@ -85,7 +85,6 @@ class DayStoryDetail(APIView):
 
 #  post like
 
-
 class DayStoryLikeList(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -99,6 +98,48 @@ class DayStoryLikeList(APIView):
         serializer = DayStoryLikeSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(day_story=day_story, user=request.user)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+# post comments 
+class DayStoryCommentList(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        dayStoryComment = DayStoryComment.objects.filter(user=request.user)
+        serializer = DayStoryCommentSerializer(dayStoryComment, many=True)
+        return Response(serializer.data)
+
+    def post(self, request,pk, format=None):
+        day_story = DayStory.objects.get(pk=pk)
+        serializer = DayStoryCommentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user, day_story=day_story)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+
+
+# shere story
+
+class DayStoryShareList(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request, format=None):
+        dayStoryShare = DayStoryShare.objects.filter(user=request.user)
+        serializer = DayStoryShareSerializer(dayStoryShare, many=True)
+        return Response(serializer.data)
+
+    def post(self, request,pk, format=None):
+        day_story = DayStory.objects.get(pk=pk)
+        serializer = DayStoryShareSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user, day_story=day_story)
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

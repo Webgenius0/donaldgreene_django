@@ -10,15 +10,16 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class DayStoryCommentSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
+    user = UserSerializer(read_only=True)
 
     class Meta:
         model = DayStoryComment
-        fields = "__all__"
+        # fields = "__all__"
+        fields = ["id", "user", "content", "created_at"]
 
 
 class DayStoryLikeSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
+    user = UserSerializer(read_only=True)
 
     class Meta:
         model = DayStoryLike
@@ -26,11 +27,12 @@ class DayStoryLikeSerializer(serializers.ModelSerializer):
 
 
 class DayStoryShareSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
+    user = UserSerializer(read_only=True)
 
     class Meta:
         model = DayStoryShare
-        fields = "__all__"
+        # fields = "__all__"
+        fields = ["id", "user", "created_at"]
 
 
 class DayStorySerializer(serializers.ModelSerializer):

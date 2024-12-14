@@ -18,7 +18,7 @@ class DayStory(models.Model):
 
 class DayStoryComment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    day_story = models.ForeignKey(DayStory, on_delete=models.CASCADE)
+    day_story = models.ForeignKey(DayStory, related_name="comments", on_delete=models.CASCADE)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -38,7 +38,7 @@ class DayStoryLike(models.Model):
 
 class DayStoryShare(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    day_story = models.ForeignKey(DayStory, on_delete=models.CASCADE)
+    day_story = models.ForeignKey(DayStory, related_name="shares", on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
