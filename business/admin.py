@@ -11,3 +11,7 @@ class BusinessProfileAdmin(ModelAdmin):
 
     def verification_badge(self, obj):
         return obj.verification_badge.badge_name if obj.verification_badge else None
+
+@admin.register(PaymentMethod)
+class PaymentMethodAdmin(ModelAdmin):
+    list_display = ('user', 'account_holder_fname','account_type') 
