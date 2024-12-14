@@ -52,6 +52,10 @@ class VerificationBadge(models.Model):
     badge_description = models.TextField(blank=True, null=True)
     badge_logo = models.ImageField(blank=True, null=True)
     badge_price = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    is_active = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.badge_name
@@ -63,6 +67,9 @@ class BusinessProfile(models.Model):
     business_logo = models.ImageField(blank=True, null=True)
     payment_method = models.ForeignKey(PaymentMethod, on_delete=models.CASCADE, blank=True, null=True)
     verification_badge = models.ForeignKey(VerificationBadge, on_delete=models.CASCADE, blank=True, null=True)
-    
+    is_active = models.BooleanField(default=True)
+
+    create_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     def __str__(self):
         return self.business_name
