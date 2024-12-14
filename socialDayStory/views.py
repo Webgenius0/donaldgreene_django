@@ -91,7 +91,13 @@ class DayStoryLikeList(APIView):
     def get(self, request, format=None):
         dayStoryLike = DayStoryLike.objects.filter(user=request.user)
         serializer = DayStoryLike(dayStoryLike, many=True)
-        return Response(serializer.data)
+        response_data = {
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "Day story like list get successful",
+            "data": serializer.data,
+        }
+        return Response(response_data)
 
     def post(self, request,pk, format=None):
         day_story = DayStory.objects.get(pk=pk)
@@ -99,7 +105,13 @@ class DayStoryLikeList(APIView):
         if serializer.is_valid():
             serializer.save(day_story=day_story, user=request.user)
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            response_data = {
+                "status": status.HTTP_201_CREATED,
+                "success": True,
+                "message": "Day story like created successful",
+                "data": serializer.data,
+            }
+            return Response(response_data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -112,7 +124,13 @@ class DayStoryCommentList(APIView):
     def get(self, request, format=None):
         dayStoryComment = DayStoryComment.objects.filter(user=request.user)
         serializer = DayStoryCommentSerializer(dayStoryComment, many=True)
-        return Response(serializer.data)
+        response_data = {
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "Day story comment list get successful",
+            "data": serializer.data,
+        }
+        return Response(response_data)
 
     def post(self, request,pk, format=None):
         day_story = DayStory.objects.get(pk=pk)
@@ -120,7 +138,13 @@ class DayStoryCommentList(APIView):
         if serializer.is_valid():
             serializer.save(user=request.user, day_story=day_story)
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            response_data = {
+                "status": status.HTTP_201_CREATED,
+                "success": True,
+                "message": "Day story comment created successful",
+                "data": serializer.data,
+            }
+            return Response(response_data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
@@ -133,7 +157,13 @@ class DayStoryShareList(APIView):
     def get(self, request, format=None):
         dayStoryShare = DayStoryShare.objects.filter(user=request.user)
         serializer = DayStoryShareSerializer(dayStoryShare, many=True)
-        return Response(serializer.data)
+        response_data = {
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "Day story share list get successful",
+            "data": serializer.data,
+        }
+        return Response(response_data)
 
     def post(self, request,pk, format=None):
         day_story = DayStory.objects.get(pk=pk)
@@ -141,5 +171,11 @@ class DayStoryShareList(APIView):
         if serializer.is_valid():
             serializer.save(user=request.user, day_story=day_story)
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            response_data = {
+                "status": status.HTTP_201_CREATED,
+                "success": True,
+                "message": "Day story share created successful",
+                "data": serializer.data,
+            }
+            return Response(response_data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
