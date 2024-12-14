@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'products',
     'socialPost',
     'socialDayStory',
+    'business',
 
 
 ]

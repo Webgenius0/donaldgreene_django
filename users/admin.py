@@ -3,6 +3,7 @@
 
 # from .forms import UserCreationForm, UserChangeForm
 from .models import User
+from unfold.admin import ModelAdmin
 
 
 # class UserAdmin(UserAdmin):
@@ -38,5 +39,22 @@ from unfold.admin import ModelAdmin
 
 
 @admin.register(User)
-class CustomAdminClass(ModelAdmin):
-    pass
+class CustomUserAdmin(ModelAdmin):
+    model = User
+    list_display = ('email', 'first_name', 'last_name', 'is_staff', 'is_active')
+    list_filter = ('is_staff', 'is_active', 'gender', 'occupation')
+    search_fields = ('email', 'first_name', 'last_name')
+    ordering = ('email',)
+
+    fieldsets = (
+        (None, {'fields': ('email', 'password')}),
+        ('Personal Information', {'fields': ('first_name', 'last_name', 'state', 'city', 'bio', 'age', 'gender')}),
+        ('Permissions', {'fields': ('is_staff', 'is_active', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Important Dates', {'fields': ('last_login', 'date_joined')}),
+    )
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('email','password', 'first_name', 'last_name', 'state', 'city', 'bio', 'age', 'gender', 'is_staff', 'is_active'),
+        }),
+    )
