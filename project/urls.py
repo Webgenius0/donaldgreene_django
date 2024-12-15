@@ -12,6 +12,8 @@ urlpatterns = [
     path('api/', include('socialPost.urls')),
     path('api/', include('socialDayStory.urls')),
     path('api/', include('business.urls')),
+    path('api/', include('mall.urls')),
+    
 ]
 
 if settings.DEBUG:

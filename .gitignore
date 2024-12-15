@@ -1,6 +1,7 @@
 # Virtual Environment
 venv/
 env/
+donal/
 .Python
 
 # Environment Variables
