@@ -48,6 +48,8 @@ class Product(models.Model):
     color_variant = models.ManyToManyField(ColorVariant, related_name="products", blank=True, null=True)
     size_variant = models.ManyToManyField(SizeVariant, related_name="products", blank=True, null=True)
 
+    # is_available = Boolean
+    # payment_method = /cash on delivery/ card 
     # tags = models.ManyToManyField()
     # product_images = models.ManyToManyField()
 
@@ -56,4 +58,30 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+    
+
+class Cart(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='cart')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def total_items(self):
+        return sum(item.quantity for item in self.items.all())
+    
+    def total_price(self):
+        return sum(item.product.price * item.quantity for item in self.items.all())
+    
+    def __str__(self):
+        return f'{self.user} Cart'
+
+
+class CartItem(models.Model):
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def subtotal(self):
+        return self.product.price * self.quantity
+    def __str__(self):
+        return f'{self.quantity} x {self.product.name} in cart'
     

@@ -1,7 +1,7 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
 
-from .models import Category, Product, ColorVariant, SizeVariant
+from .models import Category, Product, ColorVariant, SizeVariant, Cart, CartItem
 
 
 @admin.register(Category)
@@ -22,3 +22,11 @@ class ProductAdmin(ModelAdmin):
     list_filter = ('category', 'color_variant', 'size_variant')
     search_fields = ('name', 'description')
     ordering = ('-created_at',)
+
+@admin.register(Cart)
+class CartAdmin(ModelAdmin):
+    pass 
+
+@admin.register(CartItem)
+class CartItemAdmin(ModelAdmin):
+    pass 
