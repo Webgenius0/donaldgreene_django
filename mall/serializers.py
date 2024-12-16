@@ -42,13 +42,13 @@ class ProductSerializer(serializers.ModelSerializer):
 
 
 class CartItemSerializer(serializers.ModelSerializer):
-    product_name = serializers.ReadOnlyField(source='product.name')
-    subtotal = serializers.ReadOnlyField()
-
+    # product_name = serializers.ReadOnlyField(source='product.name')
+    # subtotal = serializers.ReadOnlyField()
+    product = ProductSerializer(read_only=True)
     class Meta:
         model = CartItem
-        fields = ['id', 'product', 'product_name', 'quantity', 'subtotal']
-        
+        fields = '__all__'
+
 class CartSerializer(serializers.ModelSerializer):
     items = CartItemSerializer(many=True, read_only=True)
     total_items = serializers.ReadOnlyField()
