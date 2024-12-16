@@ -32,3 +32,18 @@ class User(AbstractBaseUser, PermissionsMixin):
     
 
 
+# frined request 
+class UserConnector(models.Model):
+    sender = models.ForeignKey(User, related_name="sent_requests", on_delete=models.CASCADE)
+    receiver = models.ForeignKey(User, related_name="received_requests", on_delete=models.CASCADE)
+    status = models.CharField(max_length=50, default="request")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.sender.username} sent a friend request to {self.receiver.username}"
+
+
+
+# block user 
+
