@@ -37,13 +37,19 @@ class ProductListCreateView(generics.ListCreateAPIView):
 
 class CartAPIView(APIView):
     def get(self, request):
-        """Retrieve the current user's cart."""
+        
         cart, created = Cart.objects.get_or_create(user=request.user)
         serializer = CartSerializer(cart)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        response_data = {
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "Cart get successful",
+            "data": serializer.data,
+        }
+        return Response(response_data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        """Add a product to the cart or increment quantity if it already exists."""
+        
         cart, created = Cart.objects.get_or_create(user=request.user)
         product_id = request.data.get('product')
         quantity = request.data.get('quantity', 1)
@@ -56,11 +62,16 @@ class CartAPIView(APIView):
         else:
             cart_item.quantity = quantity
         cart_item.save()
-
-        return Response({'message': 'Product added to cart successfully!'}, status=status.HTTP_201_CREATED)
+        response_data = {
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "Product added to cart successfully",
+            # "data": CartItemSerializer(cart_item).data,
+        }
+        return Response(response_data, status=status.HTTP_200_OK)
 
     def patch(self, request):
-        """Increment or decrement the quantity of a product in the cart."""
+    
         cart, created = Cart.objects.get_or_create(user=request.user)
         product_id = request.data.get('product')
         action = request.data.get('action')
@@ -73,20 +84,42 @@ class CartAPIView(APIView):
             cart_item.quantity -= 1
             if cart_item.quantity <= 0:
                 cart_item.delete()
-                return Response({'message': 'Product removed from cart'}, status=status.HTTP_204_NO_CONTENT)
+                response_data = {
+                    "status": status.HTTP_200_OK,
+                    "success": True,
+                    "message": "Item deleted from cart",
+                    # "data": CartItemSerializer(cart_item).data,
+                }
+                return Response(response_data, status=status.HTTP_200_OK)
         cart_item.save()
-
-        return Response({'message': 'Cart updated successfully!'}, status=status.HTTP_200_OK)
+        response_data = {
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "Cart updated successfully",
+            # "data": CartItemSerializer(cart_item).data,
+        }
+        return Response(response_data, status=status.HTTP_200_OK)
 
     def delete(self, request):
-        """Remove a product or clear the entire cart."""
+    
         cart, created = Cart.objects.get_or_create(user=request.user)
         product_id = request.data.get('product')
 
         if product_id:
             cart_item = get_object_or_404(CartItem, cart=cart, product_id=product_id)
             cart_item.delete()
-            return Response({'message': 'Product removed from cart'}, status=status.HTTP_204_NO_CONTENT)
+            response_data = {
+                "status": status.HTTP_200_OK,
+                "success": True,
+                "message": "Item deleted from cart",
+                # "data": CartItemSerializer(cart_item).data,
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
         else:
             cart.items.all().delete()
-            return Response({'message': 'Cart cleared'}, status=status.HTTP_204_NO_CONTENT)
+            response_data = {
+                "status": status.HTTP_200_OK,
+                "success": True,
+                "message": "Cart cleared",
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
