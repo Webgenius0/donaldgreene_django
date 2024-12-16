@@ -77,7 +77,7 @@ class VerificationBadge(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.badge_name
+        return f'{self.business_profile.business_name} x {self.badge.badge_name}'
 
 
 # class Wallet(models.Model):

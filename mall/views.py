@@ -10,8 +10,8 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 # import from apps 
-from .models import Product, Category, ColorVariant, SizeVariant, Cart, CartItem
-from .serializers import ProductSerializer, CartSerializer, CartItemSerializer
+from .models import Product, Category, ColorVariant, SizeVariant, Cart, CartItem, Order, OrderItem
+from .serializers import ProductSerializer, CartSerializer, CartItemSerializer, OrderSerializer, OrderItemSerializer
 
 
 class ProductListView(generics.ListAPIView):
@@ -123,3 +123,37 @@ class CartAPIView(APIView):
                 "message": "Cart cleared",
             }
             return Response(response_data, status=status.HTTP_200_OK)
+        
+class OrderView(APIView):
+    def get(self, request, order_id=None):
+        if order_id:
+            try:
+                order = Order.objects.get(id=order_id, user=request.user)
+                serializer = OrderSerializer(order)
+                return Response(
+                    {"status": status.HTTP_200_OK, "message": "Order retrieved successfully", "data": serializer.data},
+                    status=status.HTTP_200_OK,
+                )
+            except Order.DoesNotExist:
+                return Response({"status": status.HTTP_404_NOT_FOUND, "message": "Order not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        orders = Order.objects.filter(user=request.user)
+        serializer = OrderSerializer(orders, many=True)
+        return Response(
+            {"status": status.HTTP_200_OK, "message": "Orders retrieved successfully", "data": serializer.data},
+            status=status.HTTP_200_OK,
+        )
+
+    def post(self, request):
+        serializer = OrderSerializer(data=request.data)
+        if serializer.is_valid():
+            order = serializer.save(user=request.user)
+            return Response(
+                {"status": status.HTTP_201_CREATED, "message": "Order created successfully", "data": serializer.data},
+                status=status.HTTP_201_CREATED,
+            )
+
+        return Response(
+            {"status": status.HTTP_400_BAD_REQUEST, "message": "Invalid data", "errors": serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST,
+        )

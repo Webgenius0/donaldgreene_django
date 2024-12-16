@@ -1,7 +1,7 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
 
-from .models import Category, Product, ColorVariant, SizeVariant, Cart, CartItem
+from .models import Category, Product, ColorVariant, SizeVariant, Cart, CartItem, Order, OrderItem
 
 
 @admin.register(Category)
@@ -30,3 +30,11 @@ class CartAdmin(ModelAdmin):
 @admin.register(CartItem)
 class CartItemAdmin(ModelAdmin):
     pass 
+
+@admin.register(Order)
+class OrderAdmin(ModelAdmin):
+    list_display = ['order_number', 'status', 'payment_status', 'shipping_address', 'phone', 'subtotal', 'shipping_city']
+
+@admin.register(OrderItem)
+class OrderItemAdmin(ModelAdmin):
+    pass

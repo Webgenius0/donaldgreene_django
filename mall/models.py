@@ -85,3 +85,73 @@ class CartItem(models.Model):
     def __str__(self):
         return f'{self.quantity} x {self.product.name} in cart'
     
+
+class Order(models.Model):
+    ORDER_STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('PROCESSING', 'Processing'),
+        ('SHIPPED', 'Shipped'),
+        ('DELIVERED', 'Delivered'),
+        ('CANCELLED', 'Cancelled'),
+    ]
+
+    PAYMENT_STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('COMPLETED', 'Completed'),
+        ('FAILED', 'Failed'),
+        ('REFUNDED', 'Refunded'),
+    ]
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders')
+    order_number = models.CharField(max_length=20, unique=True)
+    status = models.CharField(max_length=20, choices=ORDER_STATUS_CHOICES, default='PENDING')
+    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='PENDING')
+    
+    # Shipping Information
+    shipping_address = models.TextField()
+    shipping_city = models.CharField(max_length=100)
+    shipping_state = models.CharField(max_length=100)
+    shipping_zip_code = models.CharField(max_length=20)
+    
+    # Contact Information
+    phone = models.CharField(max_length=20, blank=True)
+    email = models.EmailField(blank=True, null=True)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    # Order Summary
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2)
+    shipping_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    tax = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    total = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    def save(self, *args, **kwargs):
+        self.subtotal = self.subtotal or 0
+        self.shipping_cost = self.shipping_cost or 0
+        self.tax = self.tax or 0
+        
+        if not self.order_number:
+            self.order_number = self.generate_order_number()
+        if not self.total:
+            self.total = self.subtotal + self.shipping_cost + self.tax
+        super().save(*args, **kwargs)
+    
+    @staticmethod
+    def generate_order_number():
+        import random
+        import string
+        return ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+    
+    def __str__(self):
+        return f"Order {self.order_number}"
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField()
+    price = models.DecimalField(max_digits=10, decimal_places=2)  # Price at time of purchase
+    
+    def subtotal(self):
+        return self.price * self.quantity
