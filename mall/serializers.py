@@ -41,17 +41,21 @@ class ProductSerializer(serializers.ModelSerializer):
         return product
 
 
-class CartSerializer(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField(read_only=True)
-    class Meta:
-        model = Cart
-        fields = '__all__'
-        read_only_fields = ['user']
-
 class CartItemSerializer(serializers.ModelSerializer):
-    product = ProductSerializer()
-    cart = CartSerializer()
+    product_name = serializers.ReadOnlyField(source='product.name')
+    subtotal = serializers.ReadOnlyField()
+
     class Meta:
         model = CartItem
-        fields = '__all__'
-        read_only_fields = ['cart']
+        fields = ['id', 'product', 'product_name', 'quantity', 'subtotal']
+        
+class CartSerializer(serializers.ModelSerializer):
+    items = CartItemSerializer(many=True, read_only=True)
+    total_items = serializers.ReadOnlyField()
+    total_price = serializers.ReadOnlyField()
+
+    class Meta:
+        model = Cart
+        fields = ['id', 'user', 'items', 'total_items', 'total_price']
+
+

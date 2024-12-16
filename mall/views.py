@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.shortcuts import get_object_or_404
 
 # import from rest_framework
 from rest_framework.views import APIView
@@ -9,8 +10,8 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 # import from apps 
-from .models import Product, Category, ColorVariant, SizeVariant
-from .serializers import ProductSerializer
+from .models import Product, Category, ColorVariant, SizeVariant, Cart, CartItem
+from .serializers import ProductSerializer, CartSerializer, CartItemSerializer
 
 
 class ProductListView(generics.ListAPIView):
@@ -32,3 +33,60 @@ class ProductListCreateView(generics.ListCreateAPIView):
         return Product.objects.filter(user=self.request.user)
     def perform_create(self, serializer): 
         serializer.save(user=self.request.user) 
+
+
+class CartAPIView(APIView):
+    def get(self, request):
+        """Retrieve the current user's cart."""
+        cart, created = Cart.objects.get_or_create(user=request.user)
+        serializer = CartSerializer(cart)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        """Add a product to the cart or increment quantity if it already exists."""
+        cart, created = Cart.objects.get_or_create(user=request.user)
+        product_id = request.data.get('product')
+        quantity = request.data.get('quantity', 1)
+
+        product = get_object_or_404(Product, id=product_id)
+        cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product)
+
+        if not created:
+            cart_item.quantity += quantity
+        else:
+            cart_item.quantity = quantity
+        cart_item.save()
+
+        return Response({'message': 'Product added to cart successfully!'}, status=status.HTTP_201_CREATED)
+
+    def patch(self, request):
+        """Increment or decrement the quantity of a product in the cart."""
+        cart, created = Cart.objects.get_or_create(user=request.user)
+        product_id = request.data.get('product')
+        action = request.data.get('action')
+
+        cart_item = get_object_or_404(CartItem, cart=cart, product_id=product_id)
+
+        if action == 'increment':
+            cart_item.quantity += 1
+        elif action == 'decrement':
+            cart_item.quantity -= 1
+            if cart_item.quantity <= 0:
+                cart_item.delete()
+                return Response({'message': 'Product removed from cart'}, status=status.HTTP_204_NO_CONTENT)
+        cart_item.save()
+
+        return Response({'message': 'Cart updated successfully!'}, status=status.HTTP_200_OK)
+
+    def delete(self, request):
+        """Remove a product or clear the entire cart."""
+        cart, created = Cart.objects.get_or_create(user=request.user)
+        product_id = request.data.get('product')
+
+        if product_id:
+            cart_item = get_object_or_404(CartItem, cart=cart, product_id=product_id)
+            cart_item.delete()
+            return Response({'message': 'Product removed from cart'}, status=status.HTTP_204_NO_CONTENT)
+        else:
+            cart.items.all().delete()
+            return Response({'message': 'Cart cleared'}, status=status.HTTP_204_NO_CONTENT)
