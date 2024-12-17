@@ -4,6 +4,27 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.password_validation import validate_password
 
 
+# user serializers
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "state",
+            "city",
+            "bio",
+            "age",
+            "gender",
+            "occupation",
+            "marital_status",
+            "language",
+            "date_joined",
+        ]
+
+
 class SignupSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -18,12 +39,6 @@ class SignupSerializer(serializers.ModelSerializer):
                 password=password,
             )
             return user
-
-# user serializers
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ["id", "email", "first_name"]
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -52,12 +67,12 @@ class UserConnectorSerializer(serializers.ModelSerializer):
     sender = UserSerializer(read_only=True)
     receiver = UserSerializer(read_only=True)  # Nested serializer for GET
     receiver_id = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(), write_only=True, source='receiver'
+        queryset=User.objects.all(), write_only=True, source="receiver"
     )  # Use this for writable receiver during POST
 
     class Meta:
         model = UserConnector
-        fields = ['id', 'sender', 'receiver','receiver_id', 'status']
+        fields = ["id", "sender", "receiver", "receiver_id", "status"]
 
 
 # reset password new to old password
