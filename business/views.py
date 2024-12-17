@@ -15,10 +15,10 @@ from .serializers import PaymentMethodSerializer, BusinessProfileSerializer, Ver
 
 
 
-class BusinessProfileListAPIView(generics.ListAPIView):
-    queryset = BusinessProfile.objects.all()
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
+class BusinessProfileListAPIView(APIView): # get all business profiles list
+    
+    def get(self, request, *args):
+        queryset = BusinessProfile.objects.filter(is_active=True)
         response_data = {
                 'status': status.HTTP_200_OK,
                 'message': 'Success',
@@ -26,62 +26,73 @@ class BusinessProfileListAPIView(generics.ListAPIView):
             }
         return Response(response_data)
 
-class BusinessProfileAPIView(generics.ListCreateAPIView):
-    serializer_class = BusinessProfileSerializer
-    permission_classes = [IsAuthenticated]
-    def get_queryset(self):
-        return BusinessProfile.objects.filter(user=self.request.user)
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user) 
-    
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        response_data = {
+class BusinessProfileAPIView(APIView): # get and create business profile for single user
+    def get(self, request, *args, **kwargs):
+        queryset = BusinessProfile.objects.filter(user=self.request.user)
+        if queryset is None:
+            response_data = {
+                'status': status.HTTP_404_NOT_FOUND,
+                'message': 'Business profile not found',
+                'data': None
+            }
+        else:
+            response_data = {
                 'status': status.HTTP_200_OK,
                 'message': 'Success',
                 'data': BusinessProfileSerializer(queryset, many=True).data
             }
         return Response(response_data)
     def post(self, request, *args,**kwargs):
-        response = super().post(request, *args, **kwargs)
-        if response.status_code == status.HTTP_201_CREATED:
-            return Response(
-                {
-                    'status': status.HTTP_201_CREATED,
-                    'message': 'Business profile created successfully',
-                    'data': response.data
-                },
-                status=status.HTTP_201_CREATED
-            )
+        serializer = BusinessProfileSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=self.request.user)
+            
+            response_data = {
+                'status': status.HTTP_201_CREATED,
+                'message': 'Business profile created successfully',
+                'data': serializer.data
+            }
+            return Response(response_data, status=status.HTTP_201_CREATED)
         else:
-            return Response(
-                {
-                    'status': response.status_code,
-                    'message': 'Invalid data',
-                    'data': response.data
-                },
-                status=response.status_code
-            )
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 class PaymentMethodAPIView(APIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        payment_method = PaymentMethod.objects.filter(user=request.user).first()
-        if payment_method:
-            serializer = PaymentMethodSerializer(payment_method)
-            return Response(
-                {
-                    'status': status.HTTP_200_OK,
-                    'message': 'success',
-                    'data': serializer.data
-                }
-            )
+    def get(self, request, *args,**kwargs):
+        queryset = PaymentMethod.objects.filter(user=self.request.user)
+        if queryset is None:
+            response_data = {
+                'status': status.HTTP_404_NOT_FOUND,
+                'message': 'Payment method not found',
+                'data': None
+            }
         else:
-            return Response(
-                {
-                    'status': status.HTTP_404_NOT_FOUND,
-                    'message': 'Payment method not found'
-                },
-                status=status.HTTP_404_NOT_FOUND
-            )
+            response_data = {
+                'status': status.HTTP_200_OK,
+                'message': 'Success',
+                'data': PaymentMethodSerializer(queryset, many=True).data
+            }
+        return Response(response_data)
+    def post(self, request, *args, **kwargs):
+        serializer = PaymentMethodSerializer(data=request.data)
+        if serializer.is_valid():
+            flag = serializer.save(user=self.request.user)
+            business = BusinessProfile.objects.filter(user = self.request.user).first()
+            print('business', business)
+            if business:
+                flag.business_profile = business
+                flag.is_active = True
+                flag.save()
+
+            response_data = {
+                'status': status.HTTP_201_CREATED,
+                'message': 'Payment method created successfully',
+                'data': serializer.data
+            }
+            return Response(response_data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class VerificationBadgeAPIView(APIView):
+    
+    def post(self, request):
+        pass

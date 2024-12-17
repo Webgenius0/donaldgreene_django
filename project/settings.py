@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'socialPost',
     'socialDayStory',
     'business',
+    'mall',
 
 
 ]
@@ -186,3 +187,10 @@ EMAIL_HOST_USER = "mainbsl4@gmail.com"
 EMAIL_HOST_PASSWORD = "nmwk umma atdu sosv"
 EMAIL_PORT = 465  # SMTP port
 EMAIL_USE_SSL = True  # Use SSL for secure connection
+
+
+# STRIPE Configuration settings
+STRIPE_PUBLIC_KEY = os.getenv('STRIPE_PUBLIC_KEY')
+STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
+STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET')
+DOMAIN_URL = os.getenv('DOMAIN_URL')
