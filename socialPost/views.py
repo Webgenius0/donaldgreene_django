@@ -85,8 +85,14 @@ class PostLike(APIView):
     def post(self, request, pk, format=None):
         post = Post.objects.get(pk=pk)
         like, created = Like.objects.get_or_create(post=post, user=request.user)
+        response_data = {
+            "status": status.HTTP_201_CREATED,
+            "success": True,
+            "message": "Like list post successful",
+            "data": LikeSerializer(like).data,
+        }
         if created:
-            return Response({"status": "liked"}, status=status.HTTP_201_CREATED)
+            return Response(response_data, status=status.HTTP_201_CREATED)
         return Response({"status": "already liked"}, status=status.HTTP_200_OK)
 
 
@@ -100,7 +106,13 @@ class PostComment(APIView):
         content = request.data.get('content')
         if content:
             comment = Comment.objects.create(post=post, user=request.user, content=content)
-            return Response(CommentSerializer(comment).data, status=status.HTTP_201_CREATED)
+            response_data = {
+                "status": status.HTTP_201_CREATED,
+                "success": True,
+                "message": "Comment created successful",
+                "data": CommentSerializer(comment).data,
+            }
+            return Response(response_data, status=status.HTTP_201_CREATED)
         return Response({"error": "Content is required."}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -111,7 +123,13 @@ class PostShare(APIView):
     def post(self, request, pk, format=None):
         post = Post.objects.get(pk=pk)
         share = Share.objects.create(post=post, user=request.user)
-        return Response({"status": "shared"}, status=status.HTTP_201_CREATED)
+        response_data = {
+            "status": status.HTTP_201_CREATED,
+            "success": True,
+            "message": "Post shared successful",
+            "data": ShareSerializer(share).data,
+        }
+        return Response(response_data, status=status.HTTP_201_CREATED)
 
 
 # Comment List for a specific Post
