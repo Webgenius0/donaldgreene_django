@@ -2,7 +2,7 @@ from .models import User, UserConnector
 from rest_framework import fields, serializers
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.password_validation import validate_password
-
+from django.core.exceptions import ValidationError
 
 # user serializers
 class UserSerializer(serializers.ModelSerializer):
@@ -32,13 +32,22 @@ class SignupSerializer(serializers.ModelSerializer):
         extra_kwargs = {"password": {"write_only": True}}
 
     def create(self, validated_data):
-        if validate_password(validated_data["password"]) == None:
-            password = make_password(validated_data["password"])
-            user = User.objects.create(
-                email=validated_data["email"],
-                password=password,
-            )
-            return user
+        # if validate_password(validated_data["password"]) == None:
+        try:
+        # Validate password using Django's password validators
+            validate_password(validated_data["password"])
+        except ValidationError as e:
+        # Raise the validation errors as JSON-friendly response
+            raise serializers.ValidationError({"password": e.messages})
+
+
+
+        password = make_password(validated_data["password"])
+        user = User.objects.create(
+            email=validated_data["email"],
+            password=password,
+        )
+        return user
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
