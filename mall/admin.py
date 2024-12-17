@@ -1,0 +1,40 @@
+from django.contrib import admin
+from unfold.admin import ModelAdmin
+
+from .models import Category, Product, ColorVariant, SizeVariant, Cart, CartItem, Order, OrderItem
+
+
+@admin.register(Category)
+class CategoryAdmin(ModelAdmin):
+    pass 
+
+@admin.register(ColorVariant)
+class ColorVariantAdmin(ModelAdmin):
+    pass 
+
+@admin.register(SizeVariant)
+class ColorVariantAdmin(ModelAdmin):
+    pass 
+
+@admin.register(Product)
+class ProductAdmin(ModelAdmin):
+    list_display = ('name', 'price', 'category','created_at')
+    list_filter = ('category', 'color_variant', 'size_variant')
+    search_fields = ('name', 'description')
+    ordering = ('-created_at',)
+
+@admin.register(Cart)
+class CartAdmin(ModelAdmin):
+    pass 
+
+@admin.register(CartItem)
+class CartItemAdmin(ModelAdmin):
+    pass 
+
+@admin.register(Order)
+class OrderAdmin(ModelAdmin):
+    list_display = ['order_number', 'status', 'payment_status', 'shipping_address', 'phone', 'subtotal', 'shipping_city']
+
+@admin.register(OrderItem)
+class OrderItemAdmin(ModelAdmin):
+    pass

@@ -1,15 +1,16 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from .models import User
+from .models import User, UserConnector
 from rest_framework.exceptions import ValidationError
 from rest_framework import status
 from .serializers import (
     SignupSerializer,
     UserProfileSerializer,
     ChangePasswordSerializer,
+    UserConnectorSerializer,
 )
 from rest_framework import generics
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -86,6 +87,21 @@ class SigninView(TokenObtainPairView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+# user frofile 
+class AllUserProfileList(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, format=None):
+        user = User.objects.all()
+        serializer = UserProfileSerializer(user, many=True)
+        response_data = {
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "All user profile get successful",
+            "data": serializer.data,
+        }
+        return Response(response_data)
+    
 
 class UserProfileList(APIView):
     permission_classes = [IsAuthenticated]
@@ -156,6 +172,77 @@ class UserProfileDetail(APIView):
 
 
 
+# user friend request 
+class UserConnectorList(APIView):
+    # permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
+    def get(self, request, format=None):
+        userConnector = UserConnector.objects.all()
+        serializer = UserConnectorSerializer(userConnector, many=True)
+        response_data = {
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "All user friend request get successful",
+            "data": serializer.data,
+        }
+        return Response(response_data)
+
+    def post(self, request, format=None):
+        serializer = UserConnectorSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(sender=request.user)
+            serializer.save()
+            response_data = {
+                "status": status.HTTP_201_CREATED,
+                "success": True,
+                "message": "user friend request created successful",
+                "data": serializer.data,
+            }
+            return Response(response_data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserConnectorDetail(APIView):
+    permission_classes = [AllowAny]
+
+    def get_object(self, pk):
+        try:
+            return UserConnector.objects.get(pk=pk)
+        except UserConnector.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk, format=None):
+        userConnector = self.get_object(pk)
+        serializer = UserConnectorSerializer(userConnector)
+        response_data = {
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "user friend request get successful",
+            "data": serializer.data,
+        }
+        return Response(response_data)
+
+    def put(self, request, pk, format=None):
+        userConnector = self.get_object(pk)
+        serializer = UserConnectorSerializer(userConnector, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            response_data = {
+                "status": status.HTTP_200_OK,
+                "success": True,
+                "message": "user friend request updated successful",
+                "data": serializer.data,
+            }
+            return Response(response_data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk, format=None):
+        snippet = self.get_object(pk)
+        snippet.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+
 # reset password by old password to new password
 class ChangePassword(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
@@ -183,3 +270,6 @@ class ChangePassword(generics.GenericAPIView):
 
 def login(request):
     return render(request, "users/login.html")
+
+
+

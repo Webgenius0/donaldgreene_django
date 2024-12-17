@@ -2,29 +2,30 @@ from rest_framework import serializers
 from .models import BusinessProfile, PaymentMethod, VerificationBadge
 from users.serializers import UserProfileSerializer
 
-
-class PaymentMethodSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PaymentMethod
-        fields = "__all__"
-    def create(self, *args, **kwargs):
-        instance = super().create(*args, **kwargs)
-        instance.user = self.context["request"].user
-        instance.save()
-        return instance
-
-
+# verification badge serializers
 class VerificationBadgeSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(read_only=True)
     class Meta:
         model = VerificationBadge
         fields = "__all__"
+        read_only_fields = ['business_profile']
 
+# payment methods serializers
+class PaymentMethodSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(read_only=True)
+    class Meta:
+        model = PaymentMethod
+        fields = "__all__"
+        read_only_fields = ['business_profile']
 
+# business profile serializers
 class BusinessProfileSerializer(serializers.ModelSerializer):
-    payment_method = PaymentMethodSerializer(read_only=True)
-    verification_badge = VerificationBadgeSerializer(read_only=True)
+    payments = PaymentMethodSerializer(read_only=True, many=True)
+    verifications = VerificationBadgeSerializer(read_only=True, many=True)
     user = serializers.PrimaryKeyRelatedField(read_only=True)
     
     class Meta:
         model = BusinessProfile
-        fields = ['user','business_name', 'business_description','business_logo','payment_method','verification_badge']
+        fields = ['user','business_name', 'business_description','business_logo', 'payments', 'verifications']
+        # depth = 1
+
