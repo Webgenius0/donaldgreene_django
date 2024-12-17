@@ -179,14 +179,26 @@ class UserConnectorList(APIView):
     def get(self, request, format=None):
         userConnector = UserConnector.objects.all()
         serializer = UserConnectorSerializer(userConnector, many=True)
-        return Response(serializer.data)
+        response_data = {
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "All user friend request get successful",
+            "data": serializer.data,
+        }
+        return Response(response_data)
 
     def post(self, request, format=None):
         serializer = UserConnectorSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(sender=request.user)
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            response_data = {
+                "status": status.HTTP_201_CREATED,
+                "success": True,
+                "message": "user friend request created successful",
+                "data": serializer.data,
+            }
+            return Response(response_data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -202,14 +214,26 @@ class UserConnectorDetail(APIView):
     def get(self, request, pk, format=None):
         userConnector = self.get_object(pk)
         serializer = UserConnectorSerializer(userConnector)
-        return Response(serializer.data)
+        response_data = {
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "user friend request get successful",
+            "data": serializer.data,
+        }
+        return Response(response_data)
 
     def put(self, request, pk, format=None):
         userConnector = self.get_object(pk)
         serializer = UserConnectorSerializer(userConnector, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            response_data = {
+                "status": status.HTTP_200_OK,
+                "success": True,
+                "message": "user friend request updated successful",
+                "data": serializer.data,
+            }
+            return Response(response_data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk, format=None):
