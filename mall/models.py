@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from business.models import BusinessProfile
 
 # Create your models here.
 
@@ -36,8 +37,13 @@ class SizeVariant(models.Model):
 #     def __str__(self):
 #         return f'Image for product: {self.product.name}'
 
+PAYMENT_METHODS = (
+    ('CASH',  'CASH ON DELIVERY'),
+    ('CARD', 'CARD')
+)
 class Product(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='products')
+    business_profile = models.ForeignKey(BusinessProfile, on_delete=models.CASCADE, related_name='products', blank=True, null=True)
     name = models.CharField(max_length=200)
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     description = models.TextField(blank=True, null=True)
@@ -47,8 +53,8 @@ class Product(models.Model):
 
     color_variant = models.ManyToManyField(ColorVariant, related_name="products", blank=True, null=True)
     size_variant = models.ManyToManyField(SizeVariant, related_name="products", blank=True, null=True)
-
-    # is_available = Boolean
+    is_available = models.BooleanField(default=True)
+    # payment_methods = models.CharField(max_length=5, choices=)
     # payment_method = /cash on delivery/ card 
     # tags = models.ManyToManyField()
     # product_images = models.ManyToManyField()

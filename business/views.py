@@ -114,6 +114,16 @@ class BusinessProfileAPIView(APIView): # get and create business profile for sin
                     'data': business_serializer.data
                 }
                 return Response(response_data)
+    def delete(self, request,business_id,*args,**kwargs):
+        business_profile = BusinessProfile.objects.get(id=business_id, user=self.request.user)
+        business_profile.delete()
+        response_data = {
+            'status': status.HTTP_200_OK,
+           'message': 'Business profile deleted successfully',
+            'data': None
+        }
+        return Response(response_data)
+    
 class PaymentMethodAPIView(APIView):
 
     def get(self, request, *args,**kwargs):
