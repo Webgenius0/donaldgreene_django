@@ -4,6 +4,7 @@ from . import views
 urlpatterns = [
     path('business/profile/list/', views.BusinessProfileListAPIView.as_view()),
     path('business/profile/', views.BusinessProfileAPIView.as_view()),
+    path('business/profile/<int:business_id>/', views.BusinessProfileAPIView.as_view()),
     path('payment-method/',views.PaymentMethodAPIView.as_view()),
     path('verification-badge/', views.VerificationBadgeAPIView.as_view()),
     
