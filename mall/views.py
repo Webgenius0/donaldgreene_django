@@ -36,7 +36,7 @@ from business.models import BusinessProfile
 
 class ProductAPIView(APIView):
     permission_classes = [IsAuthenticated]
-    def get(self, request, business_id, *args, **kwargs):
+    def get(self, request, business_id,product_id=None, *args, **kwargs):
         try:
             business_profile = BusinessProfile.objects.get(id=business_id)
         except BusinessProfile.DoesNotExist:
@@ -49,6 +49,16 @@ class ProductAPIView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
         products = Product.objects.filter(business_profile=business_profile)
+        if product_id:
+            product = get_object_or_404(products, id=product_id)
+            serializer = ProductSerializer(product)
+            response_data = {
+                "status": status.HTTP_200_OK,
+                "success": True,
+                "message": "Product fetch successful",
+                "data": serializer.data,
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
         serializer = ProductSerializer(products, many=True)
         response_data = {
             "status": status.HTTP_200_OK,
