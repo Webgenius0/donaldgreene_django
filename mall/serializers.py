@@ -22,16 +22,29 @@ class ProductSerializer(serializers.ModelSerializer):
     color_variant = ColorVariantSerializer(many=True)
     size_variant = SizeVariantSerializer(many=True)
     user = serializers.PrimaryKeyRelatedField(read_only=True)
+    business_profile = serializers.SerializerMethodField()
     class Meta:
         model = Product
         fields = '__all__'
+        # read_only_fields = ['business_profile']
 
+    def get_business_profile(self, obj):
+        # Return both the ID and the business name
+        if obj.business_profile:
+            return {
+                "id": obj.business_profile.id,
+                "name": obj.business_profile.business_name,
+            }
+        return None
     def create(self, validated_data):
         color_variants_data = validated_data.pop('color_variant')
         size_variants_data = validated_data.pop('size_variant') 
         categories_data = validated_data.pop('category')
+        business_profile = validated_data.pop('business_profile')
+
         category, created = Category.objects.get_or_create(**categories_data)
-        product = Product.objects.create(category=category,**validated_data) 
+        product = Product.objects.create(category=category,business_profile=business_profile,**validated_data) 
+
         for color_variant_data in color_variants_data: 
             color_variant, created = ColorVariant.objects.get_or_create(**color_variant_data) 
             product.color_variant.add(color_variant) 
@@ -40,6 +53,39 @@ class ProductSerializer(serializers.ModelSerializer):
             product.size_variant.add(size_variant) 
         return product
 
+    def update(self, instance, validated_data):
+        # Update the product fields
+        category_data = validated_data.pop('category', None)
+        color_variants_data = validated_data.pop('color_variant', None)
+        size_variants_data = validated_data.pop('size_variant', None)
+
+        # Update the category if provided
+        if category_data:
+            category, _ = Category.objects.get_or_create(**category_data)
+            instance.category = category
+
+        # Update the color variants if provided
+        if color_variants_data:
+            instance.color_variant.clear()
+            for color_variant_data in color_variants_data:
+                color_variant, _ = ColorVariant.objects.get_or_create(**color_variant_data)
+                instance.color_variant.add(color_variant)
+
+        # Update the size variants if provided
+        if size_variants_data:
+            instance.size_variant.clear()
+            for size_variant_data in size_variants_data:
+                size_variant, _ = SizeVariant.objects.get_or_create(**size_variant_data)
+                instance.size_variant.add(size_variant)
+
+        # Update other fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        # Save the updated product
+        instance.save()
+        return instance
+    
 
 class CartItemSerializer(serializers.ModelSerializer):
     # product_name = serializers.ReadOnlyField(source='product.name')
@@ -99,3 +145,30 @@ class OrderSerializer(serializers.ModelSerializer):
         order.save()
 
         return order
+    def update(self,instance,validated_data):
+        items_data = validated_data.pop("items", None)
+
+        # Update the order fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        # Save the updated order
+        instance.save()
+
+        # Update the order items if provided
+        if items_data:
+            instance.items.all().delete()
+            for item_data in items_data:
+                OrderItem.objects.create(
+                    order=instance,
+                    product=item_data["product"],
+                    quantity=item_data["quantity"],
+                    price=item_data["price"],
+                )
+
+        # Calculate and save totals
+        instance.subtotal = sum(item.subtotal() for item in instance.items.all())
+        instance.total = instance.subtotal + instance.shipping_cost + instance.tax
+        instance.save()
+
+        return instance
