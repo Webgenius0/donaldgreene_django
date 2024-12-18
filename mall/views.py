@@ -149,7 +149,7 @@ class CartAPIView(APIView):
         }
         return Response(response_data, status=status.HTTP_200_OK)
 
-    def patch(self, request):
+    def put(self, request):
     
         cart, created = Cart.objects.get_or_create(user=request.user)
         product_id = request.data.get('product')
