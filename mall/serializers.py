@@ -86,7 +86,7 @@ class ProductSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
     
-    
+
 class CartItemSerializer(serializers.ModelSerializer):
     # product_name = serializers.ReadOnlyField(source='product.name')
     # subtotal = serializers.ReadOnlyField()
@@ -145,3 +145,30 @@ class OrderSerializer(serializers.ModelSerializer):
         order.save()
 
         return order
+    def update(self,instance,validated_data):
+        items_data = validated_data.pop("items", None)
+
+        # Update the order fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        # Save the updated order
+        instance.save()
+
+        # Update the order items if provided
+        if items_data:
+            instance.items.all().delete()
+            for item_data in items_data:
+                OrderItem.objects.create(
+                    order=instance,
+                    product=item_data["product"],
+                    quantity=item_data["quantity"],
+                    price=item_data["price"],
+                )
+
+        # Calculate and save totals
+        instance.subtotal = sum(item.subtotal() for item in instance.items.all())
+        instance.total = instance.subtotal + instance.shipping_cost + instance.tax
+        instance.save()
+
+        return instance

@@ -207,10 +207,14 @@ class OrderView(APIView):
     def get(self, request, order_id=None):
         if order_id:
             try:
-                order = Order.objects.get(id=order_id, user=request.user)
+                order = Order.objects.get(id=order_id)
                 serializer = OrderSerializer(order)
+                response_data = {
+                    "status": status.HTTP_200_OK, 
+                    "message": "Order retrieved successfully",
+                    "data": serializer.data}
                 return Response(
-                    {"status": status.HTTP_200_OK, "message": "Order retrieved successfully", "data": serializer.data},
+                    response_data,
                     status=status.HTTP_200_OK,
                 )
             except Order.DoesNotExist:
@@ -218,8 +222,12 @@ class OrderView(APIView):
 
         orders = Order.objects.filter(user=request.user)
         serializer = OrderSerializer(orders, many=True)
+        response_data =  {
+            "status": status.HTTP_200_OK, 
+            "message": "Orders retrieved successfully", 
+            "data": serializer.data}
         return Response(
-            {"status": status.HTTP_200_OK, "message": "Orders retrieved successfully", "data": serializer.data},
+           response_data,
             status=status.HTTP_200_OK,
         )
 
@@ -228,11 +236,38 @@ class OrderView(APIView):
         if serializer.is_valid():
             order = serializer.save(user=request.user)
             return Response(
-                {"status": status.HTTP_201_CREATED, "message": "Order created successfully", "data": serializer.data},
-                status=status.HTTP_201_CREATED,
+                {"status": status.HTTP_200_OK, "message": "Order created successfully", "data": serializer.data},
+                status=status.HTTP_200_OK,
             )
 
         return Response(
             {"status": status.HTTP_400_BAD_REQUEST, "message": "Invalid data", "errors": serializer.errors},
             status=status.HTTP_400_BAD_REQUEST,
         )
+    
+    def put(self, request, order_id):
+        try:
+            order = Order.objects.get(id=order_id)
+        except Order.DoesNotExist:
+            return Response({"status": status.HTTP_404_NOT_FOUND, "message": "Order not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = OrderSerializer(order, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {"status": status.HTTP_200_OK, "message": "Order updated successfully", "data": serializer.data},
+                status=status.HTTP_200_OK,
+            )
+
+        return Response(
+            {"status": status.HTTP_400_BAD_REQUEST, "message": "Invalid data", "errors": serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    def delete(self, request, order_id):
+        try:
+            order = Order.objects.get(id=order_id)
+        except Order.DoesNotExist:
+            return Response({"status": status.HTTP_404_NOT_FOUND, "message": "Order not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        order.delete()
+        return Response({"status": status.HTTP_200_OK, "message": "Order deleted successfully"}, status=status.HTTP_200_OK)
