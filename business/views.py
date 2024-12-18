@@ -27,9 +27,25 @@ class BusinessProfileListAPIView(APIView): # get all business profiles list
         return Response(response_data)
 
 class BusinessProfileAPIView(APIView): # get and create business profile for single user
-    def get(self, request, *args, **kwargs):
+    def get(self, request,business_id=None, *args, **kwargs):
+        if business_id:
+            queryset = BusinessProfile.objects.filter(id=business_id, user=self.request.user).first()
+            if queryset:
+                response_data = {
+                    'status': status.HTTP_200_OK,
+                    'message': 'Success',
+                    'data': BusinessProfileSerializer(queryset).data
+                }
+                return Response(response_data)
+            else:
+                response_data = {
+                    'status': status.HTTP_404_NOT_FOUND,
+                    'message': 'Business profile not found',
+                    'data': None
+                }
+                return Response(response_data)
         queryset = BusinessProfile.objects.filter(user=self.request.user)
-        if queryset is None:
+        if not queryset.exists():
             response_data = {
                 'status': status.HTTP_404_NOT_FOUND,
                 'message': 'Business profile not found',
@@ -43,18 +59,61 @@ class BusinessProfileAPIView(APIView): # get and create business profile for sin
             }
         return Response(response_data)
     def post(self, request, *args,**kwargs):
-        serializer = BusinessProfileSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(user=self.request.user)
-            
+        business_data = request.data.get('business_profile', {})
+        payment_data = request.data.get('payment_method', {})
+
+        business_serializer = BusinessProfileSerializer(data=business_data)
+        payment_serializer = PaymentMethodSerializer(data=payment_data)
+
+        if business_serializer.is_valid() and payment_serializer.is_valid():
+            business_profile = business_serializer.save(user=self.request.user)
+            payment_method = payment_serializer.save(user=self.request.user)
+            if payment_method:
+                payment_method.business_profile = business_profile 
+                payment_method.save()
+
             response_data = {
-                'status': status.HTTP_201_CREATED,
-                'message': 'Business profile created successfully',
-                'data': serializer.data
+                'status': status.HTTP_200_OK,
+                'message': 'Business profile and payment method created successfully',
+                'data': {
+                    'business_profile': business_serializer.data,
+                    # 'payment_method': payment_serializer.data
+                }
             }
-            return Response(response_data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(response_data, status=status.HTTP_200_OK)
+
+        return Response('success')
+    
+    def put(self, request,business_id=None, *args, **kwargs):
+        if business_id:
+            try:
+                business_profile = BusinessProfile.objects.get(id=business_id, user=request.user)
+            except BusinessProfile.DoesNotExist:
+                return Response(
+                    {
+                        'status': status.HTTP_404_NOT_FOUND,
+                        'message': 'Business profile not found',
+                    },
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            business_data = request.data.pop('business_profile',None)
+            business_serializer = BusinessProfileSerializer(business_profile, data=business_data, partial=True)
+            payment_data = request.data.pop('payment_method', None)
+            payment_serializer = PaymentMethodSerializer(data=payment_data, partial=True)
+            # update business profile and payment method with existing data 
+            if business_serializer.is_valid() and (payment_data is None or payment_serializer.is_valid()):
+                business_serializer.save()
+                if payment_data is not None:
+                    payment_method = PaymentMethod.objects.filter(business_profile=business_profile).first()
+                    payment_serializer.update(payment_method, payment_data)
+                    payment_method.save()
+
+                response_data = {
+                    'status': status.HTTP_200_OK,
+                    'message': 'Business profile updated successfully',
+                    'data': business_serializer.data
+                }
+                return Response(response_data)
 class PaymentMethodAPIView(APIView):
 
     def get(self, request, *args,**kwargs):

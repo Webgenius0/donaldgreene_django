@@ -26,6 +26,6 @@ class BusinessProfileSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = BusinessProfile
-        fields = ['user','business_name', 'business_description','business_logo', 'payments', 'verifications']
+        fields = ['id','user','business_name', 'business_description','business_logo', 'payments', 'verifications']
         # depth = 1
 
