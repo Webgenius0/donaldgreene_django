@@ -22,16 +22,29 @@ class ProductSerializer(serializers.ModelSerializer):
     color_variant = ColorVariantSerializer(many=True)
     size_variant = SizeVariantSerializer(many=True)
     user = serializers.PrimaryKeyRelatedField(read_only=True)
+    business_profile = serializers.SerializerMethodField()
     class Meta:
         model = Product
         fields = '__all__'
+        # read_only_fields = ['business_profile']
 
+    def get_business_profile(self, obj):
+        # Return both the ID and the business name
+        if obj.business_profile:
+            return {
+                "id": obj.business_profile.id,
+                "name": obj.business_profile.business_name,
+            }
+        return None
     def create(self, validated_data):
         color_variants_data = validated_data.pop('color_variant')
         size_variants_data = validated_data.pop('size_variant') 
         categories_data = validated_data.pop('category')
+        business_profile = validated_data.pop('business_profile')
+
         category, created = Category.objects.get_or_create(**categories_data)
-        product = Product.objects.create(category=category,**validated_data) 
+        product = Product.objects.create(category=category,business_profile=business_profile,**validated_data) 
+
         for color_variant_data in color_variants_data: 
             color_variant, created = ColorVariant.objects.get_or_create(**color_variant_data) 
             product.color_variant.add(color_variant) 

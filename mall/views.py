@@ -12,28 +12,73 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 # import from apps 
 from .models import Product, Category, ColorVariant, SizeVariant, Cart, CartItem, Order, OrderItem
 from .serializers import ProductSerializer, CartSerializer, CartItemSerializer, OrderSerializer, OrderItemSerializer
+from business.models import BusinessProfile
 
-
-class ProductListView(generics.ListAPIView):
-    permission_classes = [AllowAny]
-    queryset = Product.objects.all()
-    serializer_class = ProductSerializer
+# class ProductListView(generics.ListAPIView):
+#     permission_classes = [AllowAny]
+#     queryset = Product.objects.all()
+#     serializer_class = ProductSerializer
     
-class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [AllowAny]
-    queryset = Product.objects.all() 
-    serializer_class = ProductSerializer
+# class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
+#     permission_classes = [AllowAny]
+#     queryset = Product.objects.all() 
+#     serializer_class = ProductSerializer
 
 
-class ProductListCreateView(generics.ListCreateAPIView):
+# class ProductListCreateView(generics.ListCreateAPIView):
+#     permission_classes = [IsAuthenticated]
+#     authentication_classes = [JWTAuthentication]
+#     serializer_class = ProductSerializer 
+#     def get_queryset(self):
+#         return Product.objects.filter(user=self.request.user)
+#     def perform_create(self, serializer): 
+#         serializer.save(user=self.request.user) 
+
+class ProductAPIView(APIView):
     permission_classes = [IsAuthenticated]
-    authentication_classes = [JWTAuthentication]
-    serializer_class = ProductSerializer 
-    def get_queryset(self):
-        return Product.objects.filter(user=self.request.user)
-    def perform_create(self, serializer): 
-        serializer.save(user=self.request.user) 
-
+    def get(self, request, business_id, *args, **kwargs):
+        try:
+            business_profile = BusinessProfile.objects.get(id=business_id)
+        except BusinessProfile.DoesNotExist:
+            return Response(
+                {
+                    "status": status.HTTP_404_NOT_FOUND,
+                    "success": False,
+                    "message": "Business profile not found",
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        products = Product.objects.filter(business_profile=business_profile)
+        serializer = ProductSerializer(products, many=True)
+        response_data = {
+            "status": status.HTTP_200_OK,
+            "message": "Products fetched successful",
+            "data": serializer.data,
+        }
+        return Response(response_data, status=status.HTTP_200_OK)
+    def post(self, request, business_id, *args, **kwargs):
+        try:
+            business_profile = BusinessProfile.objects.get(id=business_id)
+        except BusinessProfile.DoesNotExist:
+            return Response(
+                {
+                    "status": status.HTTP_404_NOT_FOUND,
+                    "success": False,
+                    "message": "Business profile not found",
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        data = request.data 
+        serializer = ProductSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save(business_profile=business_profile, user=self.request.user)
+            response_data = {
+                "status": status.HTTP_200_OK,
+                "success": True,
+                "message": "Product created successful",
+                "data": serializer.data,
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
 
 class CartAPIView(APIView):
     def get(self, request):
