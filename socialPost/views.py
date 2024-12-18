@@ -12,7 +12,7 @@ class PostList(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
-        posts = Post.objects.all()
+        posts = Post.objects.filter(user=request.user)
         serializer = PostSerializer(posts, many=True)
         response_data = {
             "status": status.HTTP_200_OK,
