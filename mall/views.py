@@ -12,28 +12,107 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 # import from apps 
 from .models import Product, Category, ColorVariant, SizeVariant, Cart, CartItem, Order, OrderItem
 from .serializers import ProductSerializer, CartSerializer, CartItemSerializer, OrderSerializer, OrderItemSerializer
+from business.models import BusinessProfile
 
-
-class ProductListView(generics.ListAPIView):
-    permission_classes = [AllowAny]
-    queryset = Product.objects.all()
-    serializer_class = ProductSerializer
+# class ProductListView(generics.ListAPIView):
+#     permission_classes = [AllowAny]
+#     queryset = Product.objects.all()
+#     serializer_class = ProductSerializer
     
-class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [AllowAny]
-    queryset = Product.objects.all() 
-    serializer_class = ProductSerializer
+# class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
+#     permission_classes = [AllowAny]
+#     queryset = Product.objects.all() 
+#     serializer_class = ProductSerializer
 
 
-class ProductListCreateView(generics.ListCreateAPIView):
+# class ProductListCreateView(generics.ListCreateAPIView):
+#     permission_classes = [IsAuthenticated]
+#     authentication_classes = [JWTAuthentication]
+#     serializer_class = ProductSerializer 
+#     def get_queryset(self):
+#         return Product.objects.filter(user=self.request.user)
+#     def perform_create(self, serializer): 
+#         serializer.save(user=self.request.user) 
+
+class ProductAPIView(APIView):
     permission_classes = [IsAuthenticated]
-    authentication_classes = [JWTAuthentication]
-    serializer_class = ProductSerializer 
-    def get_queryset(self):
-        return Product.objects.filter(user=self.request.user)
-    def perform_create(self, serializer): 
-        serializer.save(user=self.request.user) 
-
+    def get(self, request, business_id,product_id=None, *args, **kwargs):
+        try:
+            business_profile = BusinessProfile.objects.get(id=business_id)
+        except BusinessProfile.DoesNotExist:
+            return Response(
+                {
+                    "status": status.HTTP_404_NOT_FOUND,
+                    "success": False,
+                    "message": "Business profile not found",
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        products = Product.objects.filter(business_profile=business_profile)
+        if product_id:
+            product = get_object_or_404(products, id=product_id)
+            serializer = ProductSerializer(product)
+            response_data = {
+                "status": status.HTTP_200_OK,
+                "success": True,
+                "message": "Product fetch successful",
+                "data": serializer.data,
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
+        serializer = ProductSerializer(products, many=True)
+        response_data = {
+            "status": status.HTTP_200_OK,
+            "message": "Products fetched successful",
+            "data": serializer.data,
+        }
+        return Response(response_data, status=status.HTTP_200_OK)
+    def post(self, request, business_id, *args, **kwargs):
+        try:
+            business_profile = BusinessProfile.objects.get(id=business_id)
+        except BusinessProfile.DoesNotExist:
+            return Response(
+                {
+                    "status": status.HTTP_404_NOT_FOUND,
+                    "success": False,
+                    "message": "Business profile not found",
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        data = request.data 
+        serializer = ProductSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save(business_profile=business_profile, user=self.request.user)
+            response_data = {
+                "status": status.HTTP_200_OK,
+                "success": True,
+                "message": "Product created successful",
+                "data": serializer.data,
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
+    def put(self, request,business_id,product_id, *args,**kwargs):
+        business_profile = BusinessProfile.objects.get(id=business_id)
+        product = Product.objects.get(id=product_id, business_profile=business_profile)
+        
+        serializer = ProductSerializer(product, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            response_data = {
+                "status": status.HTTP_200_OK,
+                "success": True,
+                "message": "Product updated successful",
+                "data": serializer.data,
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
+    def delete(self, request, business_id, product_id, *args,**kwargs):
+        business_profile = BusinessProfile.objects.get(id=business_id)
+        product = Product.objects.get(id=product_id, business_profile=business_profile)
+        product.delete()
+        response_data = {
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "Product deleted successful",
+        }
+        return Response(response_data, status=status.HTTP_200_OK)
 
 class CartAPIView(APIView):
     def get(self, request):
@@ -70,7 +149,7 @@ class CartAPIView(APIView):
         }
         return Response(response_data, status=status.HTTP_200_OK)
 
-    def patch(self, request):
+    def put(self, request):
     
         cart, created = Cart.objects.get_or_create(user=request.user)
         product_id = request.data.get('product')
@@ -128,10 +207,14 @@ class OrderView(APIView):
     def get(self, request, order_id=None):
         if order_id:
             try:
-                order = Order.objects.get(id=order_id, user=request.user)
+                order = Order.objects.get(id=order_id)
                 serializer = OrderSerializer(order)
+                response_data = {
+                    "status": status.HTTP_200_OK, 
+                    "message": "Order retrieved successfully",
+                    "data": serializer.data}
                 return Response(
-                    {"status": status.HTTP_200_OK, "message": "Order retrieved successfully", "data": serializer.data},
+                    response_data,
                     status=status.HTTP_200_OK,
                 )
             except Order.DoesNotExist:
@@ -139,8 +222,12 @@ class OrderView(APIView):
 
         orders = Order.objects.filter(user=request.user)
         serializer = OrderSerializer(orders, many=True)
+        response_data =  {
+            "status": status.HTTP_200_OK, 
+            "message": "Orders retrieved successfully", 
+            "data": serializer.data}
         return Response(
-            {"status": status.HTTP_200_OK, "message": "Orders retrieved successfully", "data": serializer.data},
+           response_data,
             status=status.HTTP_200_OK,
         )
 
@@ -149,11 +236,38 @@ class OrderView(APIView):
         if serializer.is_valid():
             order = serializer.save(user=request.user)
             return Response(
-                {"status": status.HTTP_201_CREATED, "message": "Order created successfully", "data": serializer.data},
-                status=status.HTTP_201_CREATED,
+                {"status": status.HTTP_200_OK, "message": "Order created successfully", "data": serializer.data},
+                status=status.HTTP_200_OK,
             )
 
         return Response(
             {"status": status.HTTP_400_BAD_REQUEST, "message": "Invalid data", "errors": serializer.errors},
             status=status.HTTP_400_BAD_REQUEST,
         )
+    
+    def put(self, request, order_id):
+        try:
+            order = Order.objects.get(id=order_id)
+        except Order.DoesNotExist:
+            return Response({"status": status.HTTP_404_NOT_FOUND, "message": "Order not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = OrderSerializer(order, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {"status": status.HTTP_200_OK, "message": "Order updated successfully", "data": serializer.data},
+                status=status.HTTP_200_OK,
+            )
+
+        return Response(
+            {"status": status.HTTP_400_BAD_REQUEST, "message": "Invalid data", "errors": serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    def delete(self, request, order_id):
+        try:
+            order = Order.objects.get(id=order_id)
+        except Order.DoesNotExist:
+            return Response({"status": status.HTTP_404_NOT_FOUND, "message": "Order not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        order.delete()
+        return Response({"status": status.HTTP_200_OK, "message": "Order deleted successfully"}, status=status.HTTP_200_OK)
