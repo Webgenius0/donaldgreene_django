@@ -21,7 +21,8 @@ class BusinessProfileListAPIView(APIView): # get all business profiles list
         queryset = BusinessProfile.objects.filter(is_active=True)
         response_data = {
                 'status': status.HTTP_200_OK,
-                'message': 'Success',
+                'success': True,
+                'message': 'Retrive Business Profile Success',
                 'data': BusinessProfileSerializer(queryset, many=True).data
             }
         return Response(response_data)
@@ -33,7 +34,8 @@ class BusinessProfileAPIView(APIView): # get and create business profile for sin
             if queryset:
                 response_data = {
                     'status': status.HTTP_200_OK,
-                    'message': 'Success',
+                    'success': True,
+                    'message': 'Retrive Business Profile',
                     'data': BusinessProfileSerializer(queryset).data
                 }
                 return Response(response_data)
@@ -54,6 +56,7 @@ class BusinessProfileAPIView(APIView): # get and create business profile for sin
         else:
             response_data = {
                 'status': status.HTTP_200_OK,
+                'success': True,
                 'message': 'Success',
                 'data': BusinessProfileSerializer(queryset, many=True).data
             }
@@ -74,6 +77,7 @@ class BusinessProfileAPIView(APIView): # get and create business profile for sin
 
             response_data = {
                 'status': status.HTTP_200_OK,
+                'success': True,
                 'message': 'Business profile and payment method created successfully',
                 'data': {
                     'business_profile': business_serializer.data,
@@ -110,6 +114,7 @@ class BusinessProfileAPIView(APIView): # get and create business profile for sin
 
                 response_data = {
                     'status': status.HTTP_200_OK,
+                    'success': True,
                     'message': 'Business profile updated successfully',
                     'data': business_serializer.data
                 }
@@ -119,6 +124,7 @@ class BusinessProfileAPIView(APIView): # get and create business profile for sin
         business_profile.delete()
         response_data = {
             'status': status.HTTP_200_OK,
+            'success': True,
            'message': 'Business profile deleted successfully',
             'data': None
         }
@@ -131,12 +137,14 @@ class PaymentMethodAPIView(APIView):
         if queryset is None:
             response_data = {
                 'status': status.HTTP_404_NOT_FOUND,
+
                 'message': 'Payment method not found',
                 'data': None
             }
         else:
             response_data = {
                 'status': status.HTTP_200_OK,
+                'success': True,
                 'message': 'Success',
                 'data': PaymentMethodSerializer(queryset, many=True).data
             }
@@ -154,6 +162,7 @@ class PaymentMethodAPIView(APIView):
 
             response_data = {
                 'status': status.HTTP_201_CREATED,
+                'success': True,
                 'message': 'Payment method created successfully',
                 'data': serializer.data
             }

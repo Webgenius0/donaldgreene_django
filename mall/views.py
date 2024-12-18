@@ -14,26 +14,6 @@ from .models import Product, Category, ColorVariant, SizeVariant, Cart, CartItem
 from .serializers import ProductSerializer, CartSerializer, CartItemSerializer, OrderSerializer, OrderItemSerializer
 from business.models import BusinessProfile
 
-# class ProductListView(generics.ListAPIView):
-#     permission_classes = [AllowAny]
-#     queryset = Product.objects.all()
-#     serializer_class = ProductSerializer
-    
-# class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
-#     permission_classes = [AllowAny]
-#     queryset = Product.objects.all() 
-#     serializer_class = ProductSerializer
-
-
-# class ProductListCreateView(generics.ListCreateAPIView):
-#     permission_classes = [IsAuthenticated]
-#     authentication_classes = [JWTAuthentication]
-#     serializer_class = ProductSerializer 
-#     def get_queryset(self):
-#         return Product.objects.filter(user=self.request.user)
-#     def perform_create(self, serializer): 
-#         serializer.save(user=self.request.user) 
-
 class ProductAPIView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request, business_id,product_id=None, *args, **kwargs):
@@ -62,6 +42,7 @@ class ProductAPIView(APIView):
         serializer = ProductSerializer(products, many=True)
         response_data = {
             "status": status.HTTP_200_OK,
+            'success': True,
             "message": "Products fetched successful",
             "data": serializer.data,
         }
@@ -211,6 +192,7 @@ class OrderView(APIView):
                 serializer = OrderSerializer(order)
                 response_data = {
                     "status": status.HTTP_200_OK, 
+                    'success': True,
                     "message": "Order retrieved successfully",
                     "data": serializer.data}
                 return Response(
@@ -224,6 +206,7 @@ class OrderView(APIView):
         serializer = OrderSerializer(orders, many=True)
         response_data =  {
             "status": status.HTTP_200_OK, 
+                    'success': True,
             "message": "Orders retrieved successfully", 
             "data": serializer.data}
         return Response(
@@ -236,7 +219,7 @@ class OrderView(APIView):
         if serializer.is_valid():
             order = serializer.save(user=request.user)
             return Response(
-                {"status": status.HTTP_200_OK, "message": "Order created successfully", "data": serializer.data},
+                {"status": status.HTTP_200_OK, "success": True,"message": "Order created successfully", "data": serializer.data},
                 status=status.HTTP_200_OK,
             )
 
@@ -255,7 +238,7 @@ class OrderView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(
-                {"status": status.HTTP_200_OK, "message": "Order updated successfully", "data": serializer.data},
+                {"status": status.HTTP_200_OK, "success": True, "message": "Order updated successfully", "data": serializer.data},
                 status=status.HTTP_200_OK,
             )
 
@@ -270,4 +253,4 @@ class OrderView(APIView):
             return Response({"status": status.HTTP_404_NOT_FOUND, "message": "Order not found"}, status=status.HTTP_404_NOT_FOUND)
 
         order.delete()
-        return Response({"status": status.HTTP_200_OK, "message": "Order deleted successfully"}, status=status.HTTP_200_OK)
+        return Response({"status": status.HTTP_200_OK, "success": True, "message": "Order deleted successfully"}, status=status.HTTP_200_OK)
