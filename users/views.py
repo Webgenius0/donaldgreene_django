@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from .models import User, UserConnector
+from socialPost.models import Post
 from rest_framework.exceptions import ValidationError
 from rest_framework import status
 from .serializers import (
@@ -12,6 +13,7 @@ from .serializers import (
     ChangePasswordSerializer,
     UserConnectorSerializer,
 )
+from socialPost.serializers import PostSerializer
 from rest_framework import generics
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.http import Http404
@@ -102,18 +104,29 @@ class AllUserProfileList(APIView):
         }
         return Response(response_data)
     
-
+import math
 class UserProfileList(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
         user = User.objects.filter(id=request.user.id)
+        post = Post.objects.filter(user=request.user)
+
         serializer = UserProfileSerializer(user, many=True)
+        post_serializer = PostSerializer(post, many=True)
+        total_like = []
+        for post in post_serializer.data:
+            total_like.append(post['total_likes'])
+            
         response_data = {
             "status": status.HTTP_200_OK,
             "success": True,
             "message": "user profile get successful",
             "data": serializer.data,
+            "post_data": {
+                "total_post" : len(post_serializer.data),
+                "total_like": sum(total_like),
+            },
         }
         return Response(response_data)
 
