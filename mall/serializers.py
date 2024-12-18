@@ -53,7 +53,40 @@ class ProductSerializer(serializers.ModelSerializer):
             product.size_variant.add(size_variant) 
         return product
 
+    def update(self, instance, validated_data):
+        # Update the product fields
+        category_data = validated_data.pop('category', None)
+        color_variants_data = validated_data.pop('color_variant', None)
+        size_variants_data = validated_data.pop('size_variant', None)
 
+        # Update the category if provided
+        if category_data:
+            category, _ = Category.objects.get_or_create(**category_data)
+            instance.category = category
+
+        # Update the color variants if provided
+        if color_variants_data:
+            instance.color_variant.clear()
+            for color_variant_data in color_variants_data:
+                color_variant, _ = ColorVariant.objects.get_or_create(**color_variant_data)
+                instance.color_variant.add(color_variant)
+
+        # Update the size variants if provided
+        if size_variants_data:
+            instance.size_variant.clear()
+            for size_variant_data in size_variants_data:
+                size_variant, _ = SizeVariant.objects.get_or_create(**size_variant_data)
+                instance.size_variant.add(size_variant)
+
+        # Update other fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        # Save the updated product
+        instance.save()
+        return instance
+    
+    
 class CartItemSerializer(serializers.ModelSerializer):
     # product_name = serializers.ReadOnlyField(source='product.name')
     # subtotal = serializers.ReadOnlyField()

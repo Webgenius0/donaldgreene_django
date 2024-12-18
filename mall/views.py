@@ -89,6 +89,30 @@ class ProductAPIView(APIView):
                 "data": serializer.data,
             }
             return Response(response_data, status=status.HTTP_200_OK)
+    def put(self, request,business_id,product_id, *args,**kwargs):
+        business_profile = BusinessProfile.objects.get(id=business_id)
+        product = Product.objects.get(id=product_id, business_profile=business_profile)
+        
+        serializer = ProductSerializer(product, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            response_data = {
+                "status": status.HTTP_200_OK,
+                "success": True,
+                "message": "Product updated successful",
+                "data": serializer.data,
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
+    def delete(self, request, business_id, product_id, *args,**kwargs):
+        business_profile = BusinessProfile.objects.get(id=business_id)
+        product = Product.objects.get(id=product_id, business_profile=business_profile)
+        product.delete()
+        response_data = {
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "Product deleted successful",
+        }
+        return Response(response_data, status=status.HTTP_200_OK)
 
 class CartAPIView(APIView):
     def get(self, request):
