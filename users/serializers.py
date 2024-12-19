@@ -21,6 +21,7 @@ class UserSerializer(serializers.ModelSerializer):
             "occupation",
             "marital_status",
             "language",
+            "avater",
             "date_joined",
         ]
 
@@ -66,6 +67,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "occupation",
             "marital_status",
             "language",
+            "avater",
             "is_active",
         ]
         # fields = "__all__"
