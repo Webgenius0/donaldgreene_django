@@ -60,7 +60,7 @@ class ProductAPIView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
         data = request.data 
-        serializer = ProductSerializer(data=data)
+        serializer = ProductSerializer(data=data,  context={'request': request})
         if serializer.is_valid():
             serializer.save(business_profile=business_profile, user=self.request.user)
             response_data = {
@@ -74,7 +74,7 @@ class ProductAPIView(APIView):
         business_profile = BusinessProfile.objects.get(id=business_id)
         product = Product.objects.get(id=product_id, business_profile=business_profile)
         
-        serializer = ProductSerializer(product, data=request.data, partial=True)
+        serializer = ProductSerializer(product, data=request.data, partial=True,  context={'request': request})
         if serializer.is_valid():
             serializer.save()
             response_data = {

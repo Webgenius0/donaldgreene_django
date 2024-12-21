@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Product, Category, ColorVariant, SizeVariant, Cart, CartItem, Order, OrderItem
+from .models import Product, Category, ColorVariant, SizeVariant, Cart, CartItem, Order, OrderItem, ProductImage
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -17,12 +17,18 @@ class SizeVariantSerializer(serializers.ModelSerializer):
         model = SizeVariant
         fields = '__all__'
 
+class ProductImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductImage
+        fields = '__all__'
+
 class ProductSerializer(serializers.ModelSerializer):
     category = CategorySerializer()
     color_variant = ColorVariantSerializer(many=True)
     size_variant = SizeVariantSerializer(many=True)
     user = serializers.PrimaryKeyRelatedField(read_only=True)
     business_profile = serializers.SerializerMethodField()
+    product_images = ProductImageSerializer(many=True, read_only=True)
     class Meta:
         model = Product
         fields = '__all__'
@@ -41,6 +47,8 @@ class ProductSerializer(serializers.ModelSerializer):
         size_variants_data = validated_data.pop('size_variant') 
         categories_data = validated_data.pop('category')
         business_profile = validated_data.pop('business_profile')
+        product_images_data = self.context['request'].FILES.getlist('product_images')
+
 
         category, created = Category.objects.get_or_create(**categories_data)
         product = Product.objects.create(category=category,business_profile=business_profile,**validated_data) 
@@ -51,6 +59,12 @@ class ProductSerializer(serializers.ModelSerializer):
         for size_variant_data in size_variants_data: 
             size_variant, created = SizeVariant.objects.get_or_create(**size_variant_data) 
             product.size_variant.add(size_variant) 
+
+        for image in product_images_data:
+            p_image = ProductImage.objects.create(product=product, image=image)
+            product.product_images.aadd(p_image)
+            product.save()
+
         return product
 
     def update(self, instance, validated_data):
@@ -58,6 +72,8 @@ class ProductSerializer(serializers.ModelSerializer):
         category_data = validated_data.pop('category', None)
         color_variants_data = validated_data.pop('color_variant', None)
         size_variants_data = validated_data.pop('size_variant', None)
+        product_images_data = self.context['request'].FILES.getlist('product_images')
+
 
         # Update the category if provided
         if category_data:
@@ -77,6 +93,13 @@ class ProductSerializer(serializers.ModelSerializer):
             for size_variant_data in size_variants_data:
                 size_variant, _ = SizeVariant.objects.get_or_create(**size_variant_data)
                 instance.size_variant.add(size_variant)
+
+        if product_images_data:
+            instance.product_images.clear()
+            for image in product_images_data:
+                p_image = ProductImage.objects.create(product=instance, image=image)
+                instance.product_images.add(p_image)
+
 
         # Update other fields
         for attr, value in validated_data.items():
