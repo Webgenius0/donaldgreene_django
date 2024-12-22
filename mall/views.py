@@ -16,7 +16,6 @@ from business.models import BusinessProfile
 
 class ProductAPIView(APIView):
     permission_classes = [IsAuthenticated]
-
     def get(self, request, business_id, product_id=None, *args, **kwargs):
         try:
             business_profile = BusinessProfile.objects.get(id=business_id)
@@ -30,7 +29,11 @@ class ProductAPIView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
+        category_name = request.query_params.get('category')
         products = Product.objects.filter(business_profile=business_profile)
+
+        if category_name:
+            products = products.filter(category__name__iexact=category_name)
 
         if product_id:
             product = get_object_or_404(products, id=product_id)
