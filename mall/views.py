@@ -16,7 +16,8 @@ from business.models import BusinessProfile
 
 class ProductAPIView(APIView):
     permission_classes = [IsAuthenticated]
-    def get(self, request, business_id,product_id=None, *args, **kwargs):
+
+    def get(self, request, business_id, product_id=None, *args, **kwargs):
         try:
             business_profile = BusinessProfile.objects.get(id=business_id)
         except BusinessProfile.DoesNotExist:
@@ -28,25 +29,33 @@ class ProductAPIView(APIView):
                 },
                 status=status.HTTP_404_NOT_FOUND,
             )
+
         products = Product.objects.filter(business_profile=business_profile)
+
         if product_id:
             product = get_object_or_404(products, id=product_id)
             serializer = ProductSerializer(product)
-            response_data = {
+            return Response(
+                {
+                    "status": status.HTTP_200_OK,
+                    "success": True,
+                    "message": "Product fetched successfully",
+                    "data": serializer.data,
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        serializer = ProductSerializer(products, many=True)
+        return Response(
+            {
                 "status": status.HTTP_200_OK,
                 "success": True,
-                "message": "Product fetch successful",
+                "message": "Products fetched successfully",
                 "data": serializer.data,
-            }
-            return Response(response_data, status=status.HTTP_200_OK)
-        serializer = ProductSerializer(products, many=True)
-        response_data = {
-            "status": status.HTTP_200_OK,
-            'success': True,
-            "message": "Products fetched successful",
-            "data": serializer.data,
-        }
-        return Response(response_data, status=status.HTTP_200_OK)
+            },
+            status=status.HTTP_200_OK,
+        )
+
     def post(self, request, business_id, *args, **kwargs):
         try:
             business_profile = BusinessProfile.objects.get(id=business_id)
@@ -59,42 +68,92 @@ class ProductAPIView(APIView):
                 },
                 status=status.HTTP_404_NOT_FOUND,
             )
-        data = request.data 
-        serializer = ProductSerializer(data=data,  context={'request': request})
-        if serializer.is_valid():
-            serializer.save(business_profile=business_profile, user=self.request.user)
-            response_data = {
-                "status": status.HTTP_200_OK,
-                "success": True,
-                "message": "Product created successful",
-                "data": serializer.data,
-            }
-            return Response(response_data, status=status.HTTP_200_OK)
-    def put(self, request,business_id,product_id, *args,**kwargs):
-        business_profile = BusinessProfile.objects.get(id=business_id)
-        product = Product.objects.get(id=product_id, business_profile=business_profile)
+        print("Request Data:", request.data)
         
-        serializer = ProductSerializer(product, data=request.data, partial=True,  context={'request': request})
+        serializer = ProductSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save(business_profile=business_profile, user=request.user)
+            return Response(
+                {
+                    "status": status.HTTP_201_CREATED,
+                    "success": True,
+                    "message": "Product created successfully",
+                    "data": serializer.data,
+                },
+                status=status.HTTP_201_CREATED,
+            )
+
+        # Return validation errors if serializer is invalid
+        return Response(
+            {
+                "status": status.HTTP_400_BAD_REQUEST,
+                "success": False,
+                "message": "Invalid data",
+                "errors": serializer.errors,
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    def put(self, request, business_id, product_id, *args, **kwargs):
+        try:
+            business_profile = BusinessProfile.objects.get(id=business_id)
+            product = Product.objects.get(id=product_id, business_profile=business_profile)
+        except (BusinessProfile.DoesNotExist, Product.DoesNotExist):
+            return Response(
+                {
+                    "status": status.HTTP_404_NOT_FOUND,
+                    "success": False,
+                    "message": "Business profile or product not found",
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        serializer = ProductSerializer(product, data=request.data, partial=True, context={'request': request})
         if serializer.is_valid():
             serializer.save()
-            response_data = {
+            return Response(
+                {
+                    "status": status.HTTP_200_OK,
+                    "success": True,
+                    "message": "Product updated successfully",
+                    "data": serializer.data,
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        return Response(
+            {
+                "status": status.HTTP_400_BAD_REQUEST,
+                "success": False,
+                "message": "Invalid data",
+                "errors": serializer.errors,
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    def delete(self, request, business_id, product_id, *args, **kwargs):
+        try:
+            business_profile = BusinessProfile.objects.get(id=business_id)
+            product = Product.objects.get(id=product_id, business_profile=business_profile)
+        except (BusinessProfile.DoesNotExist, Product.DoesNotExist):
+            return Response(
+                {
+                    "status": status.HTTP_404_NOT_FOUND,
+                    "success": False,
+                    "message": "Business profile or product not found",
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        product.delete()
+        return Response(
+            {
                 "status": status.HTTP_200_OK,
                 "success": True,
-                "message": "Product updated successful",
-                "data": serializer.data,
-            }
-            return Response(response_data, status=status.HTTP_200_OK)
-    def delete(self, request, business_id, product_id, *args,**kwargs):
-        business_profile = BusinessProfile.objects.get(id=business_id)
-        product = Product.objects.get(id=product_id, business_profile=business_profile)
-        product.delete()
-        response_data = {
-            "status": status.HTTP_200_OK,
-            "success": True,
-            "message": "Product deleted successful",
-        }
-        return Response(response_data, status=status.HTTP_200_OK)
-
+                "message": "Product deleted successfully",
+            },
+            status=status.HTTP_200_OK,
+        )
 class CartAPIView(APIView):
     def get(self, request):
         

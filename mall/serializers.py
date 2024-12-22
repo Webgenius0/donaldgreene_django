@@ -7,15 +7,12 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
         fields = '__all__'
 
-class ColorVariantSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ColorVariant
-        fields = '__all__'
+class ColorVariantSerializer(serializers.Serializer):
+    value = serializers.CharField(required=False)
 
-class SizeVariantSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SizeVariant
-        fields = '__all__'
+class SizeVariantSerializer(serializers.Serializer):
+    value = serializers.CharField(required=False)
+
 
 class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -24,8 +21,8 @@ class ProductImageSerializer(serializers.ModelSerializer):
 
 class ProductSerializer(serializers.ModelSerializer):
     category = CategorySerializer()
-    color_variant = ColorVariantSerializer(many=True)
-    size_variant = SizeVariantSerializer(many=True)
+    color_variant = ColorVariantSerializer(many=True, required=False)
+    size_variant = SizeVariantSerializer(many=True, required=False)
     user = serializers.PrimaryKeyRelatedField(read_only=True)
     business_profile = serializers.SerializerMethodField()
     product_images = ProductImageSerializer(many=True, read_only=True)
@@ -43,37 +40,48 @@ class ProductSerializer(serializers.ModelSerializer):
             }
         return None
     def create(self, validated_data):
-        color_variants_data = validated_data.pop('color_variant')
-        size_variants_data = validated_data.pop('size_variant') 
+        color_variants_data = validated_data.pop('color_variant', [])
+        size_variants_data = validated_data.pop('size_variant', [])
         categories_data = validated_data.pop('category')
         business_profile = validated_data.pop('business_profile')
         product_images_data = self.context['request'].FILES.getlist('product_images')
-
+        thumbnail_data = self.context['request'].FILES.get('thumbnail')
 
         category, created = Category.objects.get_or_create(**categories_data)
-        product = Product.objects.create(category=category,business_profile=business_profile,**validated_data) 
+        product = Product.objects.create(category=category, business_profile=business_profile, **validated_data)
 
-        for color_variant_data in color_variants_data: 
-            color_variant, created = ColorVariant.objects.get_or_create(**color_variant_data) 
-            product.color_variant.add(color_variant) 
-        for size_variant_data in size_variants_data: 
-            size_variant, created = SizeVariant.objects.get_or_create(**size_variant_data) 
-            product.size_variant.add(size_variant) 
+        # Handle color variants
+        for color_variant_data in color_variants_data:
+            color_variant, created = ColorVariant.objects.get_or_create(**color_variant_data)
+            product.color_variant.add(color_variant)
 
+        # Handle size variants
+        for size_variant_data in size_variants_data:
+            size_variant = SizeVariant.objects.filter(**size_variant_data).first()  # Fetch the first matching size variant
+            if not size_variant:
+                # Create a new size variant if it doesn't exist
+                size_variant = SizeVariant.objects.create(**size_variant_data)
+            product.size_variant.add(size_variant)
+
+        # Handle product images
         for image in product_images_data:
             p_image = ProductImage.objects.create(product=product, image=image)
-            product.product_images.aadd(p_image)
+            product.product_images.add(p_image)
+
+        # Handle thumbnail image
+        if thumbnail_data:
+            product.thumbnail = thumbnail_data
             product.save()
 
+        product.save()
         return product
 
     def update(self, instance, validated_data):
-        # Update the product fields
-        category_data = validated_data.pop('category', None)
+        # Extract the related fields for the update
         color_variants_data = validated_data.pop('color_variant', None)
         size_variants_data = validated_data.pop('size_variant', None)
         product_images_data = self.context['request'].FILES.getlist('product_images')
-
+        category_data = validated_data.pop('category', None)
 
         # Update the category if provided
         if category_data:
@@ -91,23 +99,28 @@ class ProductSerializer(serializers.ModelSerializer):
         if size_variants_data:
             instance.size_variant.clear()
             for size_variant_data in size_variants_data:
-                size_variant, _ = SizeVariant.objects.get_or_create(**size_variant_data)
+                # Use filter to ensure only one object is returned
+                size_variant = SizeVariant.objects.filter(**size_variant_data).first()
+                if not size_variant:
+                    size_variant = SizeVariant.objects.create(**size_variant_data)
                 instance.size_variant.add(size_variant)
 
+        # Update product images if provided
         if product_images_data:
-            instance.product_images.clear()
+            instance.product_images.all().delete()  # Delete old images
             for image in product_images_data:
                 p_image = ProductImage.objects.create(product=instance, image=image)
                 instance.product_images.add(p_image)
-
 
         # Update other fields
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
-        # Save the updated product
+        # Save the updated product instance
         instance.save()
+
         return instance
+
     
 
 class CartItemSerializer(serializers.ModelSerializer):
