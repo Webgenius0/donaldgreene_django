@@ -2,17 +2,19 @@ from django.http import Http404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Post, Comment, Like, Share
+from .models import Post, Comment, Like, Share, PostImage
 from .serializers import PostSerializer, CommentSerializer, LikeSerializer, ShareSerializer
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import MultiPartParser, FormParser
 
 # Post List and Detail View
 class PostList(APIView):
 
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
 
     def get(self, request, format=None):
-        posts = Post.objects.all()
+        posts = Post.objects.filter(user=request.user)
         serializer = PostSerializer(posts, many=True)
         response_data = {
             "status": status.HTTP_200_OK,
@@ -25,7 +27,11 @@ class PostList(APIView):
     def post(self, request, format=None):
         serializer = PostSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(user=request.user)
+            post = serializer.save(user=request.user)
+            images = request.FILES.getlist('images')
+            for image in images:
+                PostImage.objects.create(post=post, image=image)
+            # serializer.save(user=request.user)
             serializer.save()
             response_data = {
                 "status": status.HTTP_201_CREATED,
