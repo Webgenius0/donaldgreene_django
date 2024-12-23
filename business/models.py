@@ -12,7 +12,7 @@ class BusinessProfile(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     business_name = models.CharField(max_length=250)
     business_description = models.TextField()
-    business_logo = models.ImageField(blank=True, null=True)
+    business_logo = models.ImageField(blank=True, null=True, upload_to='business/business_logo/')
     is_active = models.BooleanField(default=True)
 
     create_at = models.DateTimeField(auto_now_add=True)
@@ -60,7 +60,7 @@ BADGE = (
 class Badge(models.Model):
     badge_name = models.CharField(max_length=10, choices=BADGE, blank=True, null=True)
     badge_description = models.TextField(blank=True, null=True)
-    badge_logo = models.ImageField(blank=True, null=True)
+    badge_logo = models.ImageField(blank=True, null=True, upload_to='business/badge_logo/')
     badge_price = models.DecimalField(max_digits=5, decimal_places=2, default=0)
 
     def __str__(self):
