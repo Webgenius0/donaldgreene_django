@@ -18,6 +18,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     occupation = models.CharField(max_length=100, blank=True, null=True)
     marital_status = models.CharField(max_length=50, blank=True, null=True)
     language = models.CharField(max_length=100, blank=True, null=True)
+    # avater
+    avater = models.FileField(upload_to="avater/", blank=True, null=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     date_joined = models.DateTimeField(default=timezone.now)

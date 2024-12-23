@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Post, Comment, Like, Share
+from .models import Post, Comment, Like, Share, PostImage
 # from users.models import User
 from users.serializers import UserSerializer
 
@@ -36,11 +36,19 @@ class ShareSerializer(serializers.ModelSerializer):
         fields = ["id", "user", "created_at"]
 
 
+class PostImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PostImage
+        fields = ["id", "image"]
+
+
+
 class PostSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     comments = CommentSerializer(many=True, read_only=True)
     likes = LikeSerializer(many=True, read_only=True)
     shares = ShareSerializer(many=True, read_only=True)
+    images = PostImageSerializer(many=True, read_only=True)
     total_likes = serializers.SerializerMethodField()
     total_comment = serializers.SerializerMethodField()
     total_shares = serializers.SerializerMethodField()
@@ -50,6 +58,7 @@ class PostSerializer(serializers.ModelSerializer):
             "id",
             "title",
             "content",
+            "images",
             "created_at",
             "updated_at",
             "user",
