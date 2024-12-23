@@ -27,15 +27,15 @@ class SizeVariant(models.Model):
     def __str__(self):
         return f'Size: {self.value}'
     
-# class ProductImage(models.Model):
-#     product = models.ForeignKey("Product", on_delete=models.CASCADE, related_name='images')
-#     image = models.ImageField(blank=True, null=True, upload_to='mall/product/images/')
+class ProductImage(models.Model):
+    product = models.ForeignKey("Product", on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(blank=True, null=True, upload_to='mall/product/images/')
 
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
-#     def __str__(self):
-#         return f'Image for product: {self.product.name}'
+    def __str__(self):
+        return f'Image for product: {self.product.name}'
 
 PAYMENT_METHODS = (
     ('CASH',  'CASH ON DELIVERY'),
@@ -57,7 +57,7 @@ class Product(models.Model):
     # payment_methods = models.CharField(max_length=5, choices=)
     # payment_method = /cash on delivery/ card 
     # tags = models.ManyToManyField()
-    # product_images = models.ManyToManyField()
+    product_images = models.ManyToManyField(ProductImage, blank=True, null=True, related_name="product_images")
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
