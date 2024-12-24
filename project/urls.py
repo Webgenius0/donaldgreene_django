@@ -13,6 +13,7 @@ urlpatterns = [
     path('api/', include('socialDayStory.urls')),
     path('api/', include('business.urls')),
     path('api/', include('mall.urls')),
+    path('api/chat/', include('chat.urls')),
     
 ]
 
