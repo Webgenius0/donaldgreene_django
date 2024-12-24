@@ -51,13 +51,13 @@ class Product(models.Model):
     new_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     thumbnail = models.ImageField(blank=True, null=True, upload_to='mall/product_thumbnail/')
 
-    color_variant = models.ManyToManyField(ColorVariant, related_name="products", blank=True, null=True)
-    size_variant = models.ManyToManyField(SizeVariant, related_name="products", blank=True, null=True)
+    color_variant = models.ManyToManyField(ColorVariant, related_name="products", blank=True)
+    size_variant = models.ManyToManyField(SizeVariant, related_name="products", blank=True)
     is_available = models.BooleanField(default=True)
     # payment_methods = models.CharField(max_length=5, choices=)
     # payment_method = /cash on delivery/ card 
     # tags = models.ManyToManyField()
-    product_images = models.ManyToManyField(ProductImage, blank=True, null=True, related_name="product_images")
+    product_images = models.ManyToManyField(ProductImage, blank=True, related_name="product_images")
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

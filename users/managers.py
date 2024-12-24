@@ -59,6 +59,7 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault("bio", "")
         extra_fields.setdefault("age", 0)
         extra_fields.setdefault("gender", "")
+        extra_fields.setdefault("avater", "")
 
         if extra_fields.get("is_staff") is not True:
             raise ValueError(_("Superuser must have is_staff=True."))

@@ -1,0 +1,22 @@
+from django.urls import path
+from .views import (
+    DirectMessageAPIView,
+    GroupMessageAPIView,
+    ChatGroupAPIView,
+    GroupManagementAPIView,
+    join_group,
+    leave_group,
+    add_member
+)
+
+urlpatterns = [
+    path('messages/direct/<int:recipient_id>/', DirectMessageAPIView.as_view(), name='direct-messages'),
+    path('messages/group/<int:group_id>/', GroupMessageAPIView.as_view(), name='group-messages'),
+    path('groups/', ChatGroupAPIView.as_view(), name='chat-groups'),
+    path('groups/<int:group_id>/', GroupManagementAPIView.as_view(), name='group-management'),
+
+    path('group/<int:group_id>/join/<int:user_id>/',join_group, name='join-group'),
+    path('group/<int:group_id>/leave/<int:user_id>/', leave_group, name='leave-group'),
+    path('group/<int:group_id>/add_member/',add_member, name='add-member'),
+    
+]
