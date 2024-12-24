@@ -5,7 +5,8 @@ from .views import (
     ChatGroupAPIView,
     GroupManagementAPIView,
     join_group,
-    leave_group
+    leave_group,
+    add_member
 )
 
 urlpatterns = [
@@ -16,4 +17,6 @@ urlpatterns = [
 
     path('group/<int:group_id>/join/<int:user_id>/',join_group, name='join-group'),
     path('group/<int:group_id>/leave/<int:user_id>/', leave_group, name='leave-group'),
+    path('group/<int:group_id>/add_member/',add_member, name='add-member'),
+    
 ]

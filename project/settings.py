@@ -198,6 +198,7 @@ STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
 STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET')
 DOMAIN_URL = os.getenv('DOMAIN_URL')
 
+<<<<<<< HEAD
 # REDIS Configuration settings
 CHANNEL_LAYERS = {
     'default': {
@@ -213,3 +214,8 @@ CHANNEL_LAYERS = {
 #         'BACKEND': 'channels.layers.InMemoryChannelLayer',
 #     },
 # }
+=======
+
+
+
+>>>>>>> ee350bebc5dbe70d661ddecfb1c59266c60ee957

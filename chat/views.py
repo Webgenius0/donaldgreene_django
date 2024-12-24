@@ -124,3 +124,15 @@ def leave_group(request, group_id):
 #     serializer = ChatGroupSerializer(members, many=True)
 #     return Response(serializer.data)
 
+@api_view(['POST'])
+def add_member(request, group_id, ):
+    group = ChatGroup.objects.get(id=group_id)
+    user_id = request.data.get('user_id')
+    user = User.objects.get(id=user_id)
+    group.members.add(user)
+    response_data = {
+        "status": status.HTTP_200_OK,
+        "success": True,
+        "message": "User added to group"
+    }
+    return Response(response_data,status=status.HTTP_200_OK)
